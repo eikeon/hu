@@ -1,0 +1,4 @@
+# http://www.google.com/support/webmasters/bin/answer.py?answer=173379
+
+- token_type -> kind
+- incremental chart parser; token by token.
