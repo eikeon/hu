@@ -18,6 +18,25 @@ class TokenType:
         return "%s" % self.label
 
 
+class Token:
+
+    def __init__(self, string, token_type):
+        self.string = string
+        self.token_type = token_type
+
+    def __repr__(self):
+        return "Token(%r, %r)" % (self.string, self.token_type)
+
+    def __str__(self):
+        return self.string
+
+    def __eq__(self, other):
+        if isinstance(other, Token):
+            return self.string==other.string and self.token_type==other.token_type
+        else:
+            return False
+        
+
 def group(*choices):
     return '(' + '|'.join(choices) + ')'
 
@@ -64,13 +83,13 @@ def tokenize(readline):
         pos = 0
         line_len = len(line)
         while pos < line_len:
-            for tokentype in TOKEN_TYPES:
-                match = tokentype.match(line, pos)
+            for token_type in TOKEN_TYPES:
+                match = token_type.match(line, pos)
                 if match:
                     token = match.group(1)
                     pos = match.end()
-                    if tokentype != WHITESPACE:
-                        yield tokentype, token
+                    if token_type != WHITESPACE:
+                        yield Token(token, token_type)
                     break
             else:
                 raise Exception("Unable to parse %s at %d" % (line, pos))
@@ -88,8 +107,8 @@ if __name__ == "__main__":
             print("> ", end="")
             sys.stdout.flush()
             line = io.StringIO(sys.stdin.readline())
-            for tokentype, token in tokenize(line.__next__):
-                print("%s(%s)" % (tokentype, token), end=" ")
+            for token in tokenize(line.__next__):
+                print("%s(%s)" % (token, token.token_type), end=" ")
             print()
     except KeyboardInterrupt:
         print("\nBye, bye!")
