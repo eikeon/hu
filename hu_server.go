@@ -1,5 +1,3 @@
-// 6g hu_server.go && 6l -o hu_server hu_server.6 && ./hu_server -addr=":9999"
-
 package main
 
 import (
@@ -14,7 +12,6 @@ import (
 	"template"
 	"io/ioutil"
 )
-
 
 
 func UrlHtmlFormatter(w io.Writer, fmt string, v ...interface{}) {
@@ -61,11 +58,6 @@ type page struct {
 	Names []string
 	Recipe *recipe
 }
-
-func (p *page) Content() string {
-	return "foo"
-}
-
 
 func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 	f, err := os.Open("recipes", os.O_RDONLY, 0)
