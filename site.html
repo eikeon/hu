@@ -1,0 +1,58 @@
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <meta charset="utf-8"> 
+    <title>{.section Title}{@}{.end}</title> 
+    <link rel="stylesheet" type="text/css" href="/page.css" media="all" /> 
+  </head> 
+  <body> 
+    <nav> 
+      <ul> 
+	<li><a href="/">hu</a></li> 
+      </ul> 
+    </nav> 
+    <header> 
+      <h1>{.section Title}{@}{.end}</h1>
+      <p class="tagline">Our healthy and yummy recipes.</p> 
+    </header> 
+ 
+
+
+{.section Names}
+<article> 
+  <ul>
+    {.repeated section Names}<li><a href="recipes/{@}/">{@}</a></li>{.end}
+  </ul>
+</article> 
+{.end}
+
+{.section Recipe}
+<article>
+  <header>
+    <h1>{.section Title}{@}{.end}</h1>
+  </header>
+  <p>{Description}</p>
+
+  {.section Ingredients}
+  <ul class="ingredients">
+    {.repeated section Ingredients}<li itemprop="ingredient" itemscope itemtype="http://data-vocabulary.org/RecipeIngredient"><span itemprop="name">{@}</span></li>{.end}
+  </ul>
+  {.end}
+
+  {.section Directions}
+  <ol class="directions" itemprop="instructions">
+    {.repeated section Directions}<li>{@}</li>{.end}
+  </ul>
+  {.end}
+
+  <hr>
+  <pre>{Original}</pre>
+</article>
+{.end}
+
+
+  <footer> 
+    <p>&#169; 2010&#8211;2011 <a href="http://eikeon.com/">Daniel Krech</a></p> 
+  </footer> 
+  </body> 
+</html>
