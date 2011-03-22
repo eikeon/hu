@@ -1,4 +1,5 @@
-from tokenizer import Token
+from tokenizer import Token, WORD
+from tagger import DICTIONARY
 
 
 class PartOfSpeech(object):
@@ -89,20 +90,13 @@ class Chart:
         yield s.token_type
         yield s
         yield Token
-        if isinstance(s, Token):
-            if s.string=="made":
-                yield "VERB"
-            if s.string=="I":
-                yield "NOUN"
+        if s.token_type==WORD:
+            word = s.string.strip()
+            if word:
+                for pos in DICTIONARY.parts_of_speech(word):
+                    yield pos.upper()
         if s=="I":
             yield "SUBJECTIVE_NOUN"
-        elif s in ["cooked", "made"]:
-            yield "VERB"
-        else:
-            yield "NOUN"
-            #yield s.upper()
-            #if s in ["olive", "red"]:
-            #    yield "ADJECTIVE"
 
     def tokenize(self, s):
         for token in s.split(" "):

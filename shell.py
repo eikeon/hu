@@ -10,8 +10,10 @@ if __name__=="__main__":
 
     parts_of_speech = [
         PartOfSpeech("SENTENCE", [WORD, WORD, STRING, PERIOD, NEWLINE]),
+        PartOfSpeech("SENTENCE", [WORD, WORD, WORD, PERIOD, NEWLINE]),
+        PartOfSpeech("SENTENCE", ["NOUN", "VERB", "NOUN", PERIOD, NEWLINE]),
         PartOfSpeech("SENTENCE", [Token("I", WORD), WORD, STRING, PERIOD, NEWLINE]),
-        PartOfSpeech("SENTENCE", ["SUBJECTIVE_NOUN", "VERB", "OBJECT"]),
+        PartOfSpeech("SENTENCE", ["SUBJECTIVE_NOUN", "VERB", "OBJECT", PERIOD, NEWLINE]),
         PartOfSpeech("OBJECT", ["NOUN"]),
         PartOfSpeech("OBJECT", ["ADJECTIVE", "NOUN"])
         #PartOfSpeech("UNKNOWN", [Token]),

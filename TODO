@@ -1,4 +1,12 @@
-# http://www.google.com/support/webmasters/bin/answer.py?answer=173379
+Add a Tagger:
 
-- token_type -> kind
-- incremental chart parser; token by token.
+  - add a real tagger; ideally one that is dictionary backed for
+    parts-of-speech.
+
+    see: 
+      http://www.google.com/dictionary
+      http://www.google.com/dictionary?langpair=en%7Cen&q=chili&hl=en&aq=f
+      http://www.nltk.org/
+      http://nltk.googlecode.com/svn/trunk/doc/howto/tag.html
+      http://wordnet.princeton.edu/wordnet/download/#nix
+
