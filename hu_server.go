@@ -7,10 +7,11 @@ import (
 	"flag"
 	"http"
 	"io"
-	"bufio"
 	"log"
+	"strings"
 	"template"
 	"io/ioutil"
+	"encoding/line"
 )
 
 
@@ -36,19 +37,73 @@ type recipe struct {
 func RecipeFromFile(filename string) *recipe {
 	var result, err = ioutil.ReadFile(filename)
 	if err != nil {
-		log.Fatal("ReadFile", err)
+		log.Print("ReadFile: ", err)
+		return nil
 	}
 
 	f, err := os.Open(filename, os.O_RDONLY, 0)	
 	if err != nil {
-		log.Fatal("open", err)
+		log.Print("open", err)
 	}
-	var input = bufio.NewReader(f)
+	var ingredients = [...]string{}[:]
+	var directions = [...]string{}[:]
 
-	var description, _ = input.ReadString('\n')
+	var input = line.NewReader(f, 1024)
+	line, isPrefix, err := input.ReadLine()
+	if err != nil {
+		log.Print("reading description")
+	}
+	if isPrefix {
+		log.Print("TODO")
+	}
+	var description = string(line)
 
-	var ingredients = [...]string{"TODO", "TODO"}[:]
-	var directions = [...]string{"TODO", "TODO"}[:]
+	line, isPrefix, err = input.ReadLine()
+	if err != nil {
+		log.Print("reading blank line")
+	}
+	if isPrefix {
+		log.Print("TODO")
+	}
+
+	for {
+		line, isPrefix, err := input.ReadLine()
+		if err != nil {
+			break;
+		}
+		if isPrefix {
+			log.Print("TODO")
+		}
+		var ingredient = string(line)
+		if len(strings.TrimSpace(ingredient))==0 {
+			break
+		}
+		ingredients = append(ingredients, ingredient)
+	}
+
+	for {
+		line, isPrefix, err := input.ReadLine()
+		if err != nil {
+			break;
+		}
+		if isPrefix {
+			log.Print("TODO")
+		}
+		var direction = string(line)
+		if len(strings.TrimSpace(direction))==0 {
+			break
+		}
+
+		line, isPrefix, err = input.ReadLine()
+		if err != nil {
+			//log.Print("reading blank line")
+		}
+		if isPrefix {
+			log.Print("TODO")
+		}
+
+		directions = append(directions, direction)
+	}
 
 	return &recipe{Original: string(result), Description: description, Ingredients: ingredients, Directions: directions}
 }
@@ -62,11 +117,11 @@ type page struct {
 func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 	f, err := os.Open("recipes", os.O_RDONLY, 0)
 	if err != nil {
-		log.Fatal("open", err)
+		log.Print("open", err)
 	}
 	dirs, err := f.Readdir(-1)
 	if err != nil {
-		log.Fatal("readdir", err)
+		log.Print("readdir", err)
 	}
 	names := make([]string, len(dirs))
 	for i, d := range dirs {
@@ -80,6 +135,9 @@ func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 func RecipeHandler(w http.ResponseWriter, req *http.Request) {
 	var title = path.Base(req.URL.Path)
 	var recipe = RecipeFromFile(path.Join(".", req.URL.Path))
+	if recipe == nil {
+		w.WriteHeader(http.StatusNotFound)
+	}
 	site_template.Execute(w, &page{Title: title, Recipe: recipe})
 }
 
@@ -92,6 +150,6 @@ func main() {
 	http.Handle("/recipes/", http.HandlerFunc(RecipeHandler))
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
-		log.Fatal("ListenAndServe:", err)
+		log.Print("ListenAndServe:", err)
 	}
 }
