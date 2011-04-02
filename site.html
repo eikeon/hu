@@ -3,23 +3,32 @@
   <head> 
     <meta charset="utf-8"> 
     <title>{.section Title}{@}{.end}</title> 
-    <link rel="stylesheet" type="text/css" href="/page.css" media="all" /> 
+    <link rel="stylesheet" type="text/css" href="/37c58cfd8b54050a0f34d8fe5ebc2ff0_page.css" media="all" />
   </head> 
   <body> 
     <header> 
       <nav> 
 	<h1><a href="/">胡</a></h1>
-	<p class="tagline">讓我們在醫藥食品</p> 
+	<p class="tagline">食品当作药品</p>
       </nav> 
     </header> 
 
-{.section Names}
+{.section NotFound}
+<article>
+  <header>
+    <h1>Page Not Found</h1>
+  </header>
+  <p><a href="/">胡</a></p>
+</article>
+{.end}
+
+{.section Recipes}
 <article> 
   <header>
     <h1>{.section Title}{@}{.end}</h1>
   </header>
   <ul>
-    {.repeated section Names}<li><a href="recipes/{@}/">{@}</a></li>{.end}
+    {.repeated section Recipes}<li><a href="recipes/{Id}/">{Name}</a></li>{.end}
   </ul>
 </article> 
 {.end}
