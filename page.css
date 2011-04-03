@@ -117,8 +117,8 @@ body {
 body a {
     color: #FFFFFF;
 }
-article {
-    max-width: 30em;
+nav, article {
+    max-width: 50em;
     padding: 1em;
     margin: 1em;
     background-color: #FFE;

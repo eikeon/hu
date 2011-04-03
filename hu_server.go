@@ -160,6 +160,33 @@ func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	bw := bufio.NewWriter(nil)
+	h := md5.New()
+	mw := io.MultiWriter(bw, h)
+	site_template.Execute(mw, &page{})
+
+	//w.SetHeader("Vary", "Accept-Encoding")
+	w.SetHeader("Cache-Control", "max-age=1, must-revalidate")
+	w.SetHeader("ETag", fmt.Sprintf("\"%x\"", h.Sum()))
+	site_template.Execute(w, &page{})
+}
+
+func RecipesHandler(w http.ResponseWriter, req *http.Request) {
+	var recipe = recipes[path.Base(req.URL.Path)]
+	if recipe != nil {
+		var p = strings.Replace(req.URL.Path, "recipes", "recipe", -1)
+		w.SetHeader("Location", p)
+		w.WriteHeader(http.StatusMovedPermanently)
+		return
+	}
+
+	if req.URL.Path != "/recipes/" {
+		w.SetHeader("Cache-Control", "max-age=10, must-revalidate")
+		w.WriteHeader(http.StatusNotFound)
+		site_template.Execute(w, &page{NotFound: true})
+		return
+	}
+
 	recipe_list := make(RecipeArray, len(recipes))
 	var i int
 	for _, recipe := range recipes {
@@ -171,12 +198,12 @@ func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 	bw := bufio.NewWriter(nil)
 	h := md5.New()
 	mw := io.MultiWriter(bw, h)
-	site_template.Execute(mw, &page{Title: "Our Recipes", Recipes: recipe_list})
+	site_template.Execute(mw, &page{Recipes: recipe_list})
 
 	//w.SetHeader("Vary", "Accept-Encoding")
 	w.SetHeader("Cache-Control", "max-age=1, must-revalidate")
 	w.SetHeader("ETag", fmt.Sprintf("\"%x\"", h.Sum()))
-	site_template.Execute(w, &page{Title: "Our Recipes", Recipes: recipe_list})
+	site_template.Execute(w, &page{Title: "Recipes", Recipes: recipe_list})
 }
 
 func RecipeHandler(w http.ResponseWriter, req *http.Request) {
@@ -198,9 +225,13 @@ func RecipeHandler(w http.ResponseWriter, req *http.Request) {
 
 func StaticHandler(w http.ResponseWriter, req *http.Request) {
 	w.SetHeader("Content-Type", "text/css")
-	w.SetHeader("Cache-Control", "max-age=3153600")
+	if strings.Contains(req.URL.Path, "^") {
+		w.SetHeader("Cache-Control", "max-age=3153600")
+	} else {
+		w.SetHeader("Cache-Control", "max-age=1, must-revalidate")
+	}
 
-	var filename = path.Join(".", "/static/page.css")
+	var filename = path.Join(".", req.URL.Path)
 
 	f, err := os.Open(filename, os.O_RDONLY, 0)
 	if err != nil {
@@ -223,8 +254,9 @@ func main() {
 	flag.Parse()
 	http.Handle("www.eikeon.com/", http.RedirectHandler("http://eikeon.com/", http.StatusMovedPermanently))
 	http.Handle("/", http.HandlerFunc(HomePageHandler))
-	http.Handle("/recipes/", http.HandlerFunc(RecipeHandler))
-	http.Handle("/37c58cfd8b54050a0f34d8fe5ebc2ff0_page.css", http.HandlerFunc(StaticHandler))
+	http.Handle("/recipes/", http.HandlerFunc(RecipesHandler))
+	http.Handle("/recipe/", http.HandlerFunc(RecipeHandler))
+	http.Handle("/static/", http.HandlerFunc(StaticHandler))
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Print("ListenAndServe:", err)

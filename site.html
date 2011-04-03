@@ -2,14 +2,17 @@
 <html> 
   <head> 
     <meta charset="utf-8"> 
-    <title>{.section Title}{@}{.end}</title> 
-    <link rel="stylesheet" type="text/css" href="/37c58cfd8b54050a0f34d8fe5ebc2ff0_page.css" media="all" />
+    <title>{.section Title}{@} « {.end}Daniel Krech</title> 
+    <link rel="stylesheet" type="text/css" href="/static/site.css^aa933dc876627b1a85509061aaad0bed" media="all" />
   </head> 
   <body> 
     <header> 
+      <h1><a href="/">Daniel Krech</a></h1>
+      <p class="tagline">食品当作药品</p>
       <nav> 
-	<h1><a href="/">胡</a></h1>
-	<p class="tagline">食品当作药品</p>
+	<ul>
+	  <li><a href="/recipes/">Recipes</a></li>
+	</ul>
       </nav> 
     </header> 
 
@@ -18,7 +21,7 @@
   <header>
     <h1>Page Not Found</h1>
   </header>
-  <p><a href="/">胡</a></p>
+  <p><a href="/">Daniel Krech</a></p>
 </article>
 {.end}
 
@@ -28,7 +31,7 @@
     <h1>{.section Title}{@}{.end}</h1>
   </header>
   <ul>
-    {.repeated section Recipes}<li><a href="recipes/{Id}/">{Name}</a></li>{.end}
+    {.repeated section Recipes}<li><a href="/recipe/{Id}/">{Name}</a></li>{.end}
   </ul>
 </article> 
 {.end}
