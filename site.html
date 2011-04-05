@@ -15,55 +15,49 @@
 	</ul>
       </nav> 
     </header> 
-
-{.section NotFound}
-<article>
-  <header>
-    <h1>Page Not Found</h1>
-  </header>
-  <p><a href="/">Daniel Krech</a></p>
-</article>
-{.end}
-
-{.section Recipes}
-<article> 
-  <header>
-    <h1>{.section Title}{@}{.end}</h1>
-  </header>
-  <ul>
-    {.repeated section Recipes}<li><a href="/recipe/{Id}/">{Name}</a></li>{.end}
-  </ul>
-</article> 
-{.end}
-
-{.section Recipe}
-<article>
-  <header>
-    <h1>{.section Title}{@}{.end}</h1>
-  </header>
-  <p>{Description}</p>
-  <hr>
-  {.section Ingredients}
-  <section class="ingredients">
-    <ul class="ingredients">
-      {.repeated section Ingredients}<li itemprop="ingredient" itemscope itemtype="http://data-vocabulary.org/RecipeIngredient"><span itemprop="name">{@}</span></li>{.end}
-    </ul>
-  </section>
-  {.end}
-
-  {.section Directions}
-  <section>
-    <ol class="directions" itemprop="instructions">
-      {.repeated section Directions}<li>{@}</li>{.end}
-    </ol>
-  </section>
-  {.end}
-
-</article>
-{.end}
-
-  <footer> 
-    <p>&#169; 2010&#8211;2011 <a href="http://eikeon.com/">Daniel Krech</a></p> 
-  </footer> 
+    {.section NotFound}
+    <article>
+      <header>
+	<h1>Page Not Found</h1>
+      </header>
+      <p><a href="/">Daniel Krech</a></p>
+    </article>
+    {.end}
+    {.section Recipes}
+    <article>
+      <header>
+	<h1>{.section Title}{@}{.end}</h1>
+      </header>
+      <ul>
+	{.repeated section Recipes}<li><a href="/recipe/{Id}/">{Name}</a></li>{.end}
+      </ul>
+    </article>
+    {.end}
+    {.section Recipe}
+    <article itemscope itemtype="http://data-vocabulary.org/Recipe">
+      <header>
+	<h1 itemprop="name">{.section Title}{@}{.end}</h1>
+      </header>
+      <p>{Description}</p>
+      <hr>
+      {.section Ingredients}
+      <section class="ingredients">
+	<ul class="ingredients">
+	  {.repeated section Ingredients}<li itemprop="ingredient" itemscope itemtype="http://data-vocabulary.org/RecipeIngredient"><span itemprop="name">{@}</span></li>{.end}
+	</ul>
+      </section>
+      {.end}
+      {.section Directions}
+      <section>
+	<ol class="directions" itemprop="instructions">
+	  {.repeated section Directions}<li>{@}</li>{.end}
+	</ol>
+      </section>
+      {.end}
+    </article>
+    {.end}
+    <footer>
+      <p>&#169; 2010&#8211;2011 <a href="http://eikeon.com/">Daniel Krech</a></p> 
+    </footer>
   </body> 
 </html>
