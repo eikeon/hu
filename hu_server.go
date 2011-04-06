@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"sort"
 	"path"
 	"flag"
@@ -10,11 +9,10 @@ import (
 	"log"
 	"strings"
 	"template"
-	"io/ioutil"
-	"encoding/line"
 	"crypto/md5"
 	"fmt"
 	"bufio"
+	"./recipe"
 )
 
 
@@ -30,119 +28,12 @@ var fmap = template.FormatterMap{
 var site_template = template.MustParseFile("site.html", fmap)
 
 
-type recipe struct {
-	Original string
-	Name string
-	Description string
-	Ingredients []string
-	Directions []string
-}
-
-func RecipeFromFile(filename string) *recipe {
-	var result, err = ioutil.ReadFile(filename)
-	if err != nil {
-		log.Print("ReadFile: ", err)
-		return nil
-	}
-
-	f, err := os.Open(filename, os.O_RDONLY, 0)
-	if err != nil {
-		log.Print("open", err)
-	}
-	var ingredients = [...]string{}[:]
-	var directions = [...]string{}[:]
-
-	var input = line.NewReader(f, 1024)
-	line, isPrefix, err := input.ReadLine()
-	if err != nil {
-		log.Print("reading description")
-	}
-	if isPrefix {
-		log.Print("TODO")
-	}
-	var description = string(line)
-
-	line, isPrefix, err = input.ReadLine()
-	if err != nil {
-		log.Print("reading blank line")
-	}
-	if isPrefix {
-		log.Print("TODO")
-	}
-
-	for {
-		line, isPrefix, err := input.ReadLine()
-		if err != nil {
-			break;
-		}
-		if isPrefix {
-			log.Print("TODO")
-		}
-		var ingredient = string(line)
-		if len(strings.TrimSpace(ingredient))==0 {
-			break
-		}
-		ingredients = append(ingredients, ingredient)
-	}
-
-	for {
-		line, isPrefix, err := input.ReadLine()
-		if err != nil {
-			break;
-		}
-		if isPrefix {
-			log.Print("TODO")
-		}
-		var direction = string(line)
-		if len(strings.TrimSpace(direction))==0 {
-			break
-		}
-
-		line, isPrefix, err = input.ReadLine()
-		if err != nil {
-			//log.Print("reading blank line")
-		}
-		if isPrefix {
-			log.Print("TODO")
-		}
-
-		directions = append(directions, direction)
-	}
-
-	return &recipe{Name: path.Base(filename), Original: string(result), Description: description, Ingredients: ingredients, Directions: directions}
-}
-
-func (r *recipe) Id() string {
-	return strings.ToLower(strings.Replace(r.Name, " ", "_", -1))
-}
-
-
-var recipes = map[string]*recipe{}
-
-
-func init() {
-	f, err := os.Open("recipes", os.O_RDONLY, 0)
-	if err != nil {
-		log.Print("open", err)
-	}
-	dirs, err := f.Readdir(-1)
-	if err != nil {
-		log.Print("readdir", err)
-	}
-	for _, d := range dirs {
-		var recipe = RecipeFromFile(path.Join("./recipes/", d.Name))
-		recipes[recipe.Id()] = recipe
-	}
-	log.Print(recipes)
-}
-
-
 type page struct {
 	Title string
 	Stylesheet string
 	NotFound bool
-	Recipes []*recipe
-	Recipe *recipe
+	Recipes []*recipe.Recipe
+	Recipe *recipe.Recipe
 }
 
 func newPage(title string) *page {
@@ -157,13 +48,6 @@ func NotFoundHandler(w http.ResponseWriter, req *http.Request) {
 	site_template.Execute(w, page)
 	return
 }
-
-type RecipeArray []*recipe
-
-func (p RecipeArray) Len() int           { return len(p) }
-func (p RecipeArray) Less(i, j int) bool { return p[i].Name < p[j].Name }
-func (p RecipeArray) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
 
 func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path != "/" {
@@ -185,8 +69,8 @@ func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func RecipesHandler(w http.ResponseWriter, req *http.Request) {
-	var recipe = recipes[path.Base(req.URL.Path)]
-	if recipe != nil {
+	var r = recipe.Recipes[path.Base(req.URL.Path)]
+	if r != nil {
 		var p = strings.Replace(req.URL.Path, "recipes", "recipe", -1)
 		w.SetHeader("Location", p)
 		w.WriteHeader(http.StatusMovedPermanently)
@@ -198,10 +82,10 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	recipe_list := make(RecipeArray, len(recipes))
+	recipe_list := make(recipe.RecipeArray, len(recipe.Recipes))
 	var i int
-	for _, recipe := range recipes {
-		recipe_list[i] = recipe
+	for _, r := range recipe.Recipes {
+		recipe_list[i] = r
 		i += 1
 	}
 	sort.Sort(recipe_list)
@@ -220,13 +104,13 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func RecipeHandler(w http.ResponseWriter, req *http.Request) {
-	var recipe = recipes[path.Base(req.URL.Path)]
-	if recipe == nil {
+	var r = recipe.Recipes[path.Base(req.URL.Path)]
+	if r == nil {
 		NotFoundHandler(w, req)
 		return
 	}
-	page := newPage(recipe.Name)
-	page.Recipe = recipe
+	page := newPage(r.Name)
+	page.Recipe = r
 
 	site_template.Execute(w, page)
 }
