@@ -15,7 +15,6 @@ import (
 	"crypto/md5"
 	"fmt"
 	"bufio"
-	//"compress/gzip"
 )
 
 
@@ -120,6 +119,7 @@ func (r *recipe) Id() string {
 
 var recipes = map[string]*recipe{}
 
+
 func init() {
 	f, err := os.Open("recipes", os.O_RDONLY, 0)
 	if err != nil {
@@ -129,7 +129,6 @@ func init() {
 	if err != nil {
 		log.Print("readdir", err)
 	}
-	//names := make([]string, len(dirs))
 	for _, d := range dirs {
 		var recipe = RecipeFromFile(path.Join("./recipes/", d.Name))
 		recipes[recipe.Id()] = recipe
@@ -140,9 +139,23 @@ func init() {
 
 type page struct {
 	Title string
+	Stylesheet string
 	NotFound bool
 	Recipes []*recipe
 	Recipe *recipe
+}
+
+func newPage(title string) *page {
+        return &page{Title: title, Stylesheet: "http://h.eikeon.com/site.css^aa933dc876627b1a85509061aaad0bed"}
+}
+
+func NotFoundHandler(w http.ResponseWriter, req *http.Request) {
+	w.SetHeader("Cache-Control", "max-age=10, must-revalidate")
+	w.WriteHeader(http.StatusNotFound)
+	page := newPage("Not Found")
+	page.NotFound = true
+	site_template.Execute(w, page)
+	return
 }
 
 type RecipeArray []*recipe
@@ -154,21 +167,21 @@ func (p RecipeArray) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path != "/" {
-		w.SetHeader("Cache-Control", "max-age=10, must-revalidate")
-		w.WriteHeader(http.StatusNotFound)
-		site_template.Execute(w, &page{NotFound: true})
+		NotFoundHandler(w, req)
 		return
 	}
+
+	page := newPage("")
 
 	bw := bufio.NewWriter(nil)
 	h := md5.New()
 	mw := io.MultiWriter(bw, h)
-	site_template.Execute(mw, &page{})
+	site_template.Execute(mw, page)
 
 	//w.SetHeader("Vary", "Accept-Encoding")
 	w.SetHeader("Cache-Control", "max-age=1, must-revalidate")
 	w.SetHeader("ETag", fmt.Sprintf("\"%x\"", h.Sum()))
-	site_template.Execute(w, &page{})
+	site_template.Execute(w, page)
 }
 
 func RecipesHandler(w http.ResponseWriter, req *http.Request) {
@@ -181,9 +194,7 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if req.URL.Path != "/recipes/" {
-		w.SetHeader("Cache-Control", "max-age=10, must-revalidate")
-		w.WriteHeader(http.StatusNotFound)
-		site_template.Execute(w, &page{NotFound: true})
+		NotFoundHandler(w, req)
 		return
 	}
 
@@ -195,57 +206,29 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	sort.Sort(recipe_list)
 
+	page := newPage("Recipes")
+	page.Recipes = recipe_list
+
 	bw := bufio.NewWriter(nil)
 	h := md5.New()
 	mw := io.MultiWriter(bw, h)
-	site_template.Execute(mw, &page{Recipes: recipe_list})
+	site_template.Execute(mw, page)
 
-	//w.SetHeader("Vary", "Accept-Encoding")
 	w.SetHeader("Cache-Control", "max-age=1, must-revalidate")
 	w.SetHeader("ETag", fmt.Sprintf("\"%x\"", h.Sum()))
-	site_template.Execute(w, &page{Title: "Recipes", Recipes: recipe_list})
+	site_template.Execute(w, page)
 }
 
 func RecipeHandler(w http.ResponseWriter, req *http.Request) {
 	var recipe = recipes[path.Base(req.URL.Path)]
 	if recipe == nil {
-		w.WriteHeader(http.StatusNotFound)
-		site_template.Execute(w, &page{NotFound: true})
+		NotFoundHandler(w, req)
 		return
 	}
-	var title = recipe.Name
-	// w.SetHeader("Content-Encoding", "gzip")
-	// ww, err := gzip.NewWriter(w)
-	// if err != nil {
-	// 	log.Print("gzip", err)
-	// }
+	page := newPage(recipe.Name)
+	page.Recipe = recipe
 
-	site_template.Execute(w, &page{Title: title, Recipe: recipe})
-}
-
-func StaticHandler(w http.ResponseWriter, req *http.Request) {
-	w.SetHeader("Content-Type", "text/css")
-	if strings.Contains(req.URL.Path, "^") {
-		w.SetHeader("Cache-Control", "max-age=3153600")
-	} else {
-		w.SetHeader("Cache-Control", "max-age=1, must-revalidate")
-	}
-
-	var filename = path.Join(".", req.URL.Path)
-
-	f, err := os.Open(filename, os.O_RDONLY, 0)
-	if err != nil {
-		log.Print("open", err)
-	}
-
-	// w.SetHeader("Content-Encoding", "gzip")
-	// ww, err := gzip.NewWriter(w)
-	// if err != nil {
-	// 	log.Print("gzip", err)
-	// }
-
-	var input = line.NewReader(f, 1024)
-	io.Copy(w, input)
+	site_template.Execute(w, page)
 }
 
 var addr = flag.String("addr", ":9999", "http service address")
@@ -256,7 +239,7 @@ func main() {
 	http.Handle("eikeon.com/", http.HandlerFunc(HomePageHandler))
 	http.Handle("eikeon.com/recipes/", http.HandlerFunc(RecipesHandler))
 	http.Handle("eikeon.com/recipe/", http.HandlerFunc(RecipeHandler))
-	http.Handle("eikeon.com/static/", http.HandlerFunc(StaticHandler))
+
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Print("ListenAndServe:", err)
