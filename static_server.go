@@ -39,6 +39,7 @@ var addr = flag.String("addr", ":9999", "http service address")
 func main() {
 	flag.Parse()
 	http.Handle("h.eikeon.com/", http.HandlerFunc(StaticHandler))
+	http.Handle("static.eikeon.com/", http.HandlerFunc(StaticHandler))
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Print("ListenAndServe:", err)

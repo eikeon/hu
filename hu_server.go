@@ -12,7 +12,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"bufio"
-	"./recipe"
+	//"./recipe"
 )
 
 
@@ -32,12 +32,12 @@ type page struct {
 	Title string
 	Stylesheet string
 	NotFound bool
-	Recipes []*recipe.Recipe
-	Recipe *recipe.Recipe
+	Recipes []*Recipe
+	Recipe *Recipe
 }
 
 func newPage(title string) *page {
-        return &page{Title: title, Stylesheet: "http://h.eikeon.com/site.css^aa933dc876627b1a85509061aaad0bed"}
+        return &page{Title: title, Stylesheet: "http://static.eikeon.com/site.css^aa933dc876627b1a85509061aaad0bed"}
 }
 
 func NotFoundHandler(w http.ResponseWriter, req *http.Request) {
@@ -69,7 +69,7 @@ func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func RecipesHandler(w http.ResponseWriter, req *http.Request) {
-	var r = recipe.Recipes[path.Base(req.URL.Path)]
+	var r = Recipes[path.Base(req.URL.Path)]
 	if r != nil {
 		var p = strings.Replace(req.URL.Path, "recipes", "recipe", -1)
 		w.SetHeader("Location", p)
@@ -82,9 +82,9 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	recipe_list := make(recipe.RecipeArray, len(recipe.Recipes))
+	recipe_list := make(RecipeArray, len(Recipes))
 	var i int
-	for _, r := range recipe.Recipes {
+	for _, r := range Recipes {
 		recipe_list[i] = r
 		i += 1
 	}
@@ -104,7 +104,7 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func RecipeHandler(w http.ResponseWriter, req *http.Request) {
-	var r = recipe.Recipes[path.Base(req.URL.Path)]
+	var r = Recipes[path.Base(req.URL.Path)]
 	if r == nil {
 		NotFoundHandler(w, req)
 		return

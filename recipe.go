@@ -1,4 +1,4 @@
-package recipe
+package main
 
 import (
 	"os"
