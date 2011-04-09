@@ -21,7 +21,7 @@ func UrlHtmlFormatter(w io.Writer, fmt string, v ...interface{}) {
 }
 
 var fmap = template.FormatterMap{
-	"html": template.HTMLFormatter,
+	"html":     template.HTMLFormatter,
 	"url+html": UrlHtmlFormatter,
 }
 
@@ -29,15 +29,15 @@ var site_template = template.MustParseFile("site.html", fmap)
 
 
 type page struct {
-	Title string
+	Title      string
 	Stylesheet string
-	NotFound bool
-	Recipes []*Recipe
-	Recipe *Recipe
+	NotFound   bool
+	Recipes    []*Recipe
+	Recipe     *Recipe
 }
 
 func newPage(title string) *page {
-        return &page{Title: title, Stylesheet: "http://static.eikeon.com/site.css^aa933dc876627b1a85509061aaad0bed"}
+	return &page{Title: title, Stylesheet: "http://static.eikeon.com/site.css^aa933dc876627b1a85509061aaad0bed"}
 }
 
 func NotFoundHandler(w http.ResponseWriter, req *http.Request) {
