@@ -12,7 +12,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"bufio"
-	//"./recipe"
+	"time"
 )
 
 
@@ -49,12 +49,26 @@ func NotFoundHandler(w http.ResponseWriter, req *http.Request) {
 	return
 }
 
+func set_cache_control(w http.ResponseWriter, req *http.Request) {
+	if req.Header["X-Draft"] != nil {
+		log.Print("..")
+		log.Print(req.Header["X-Draft"])
+		w.SetHeader("Cache-Control", "max-age=1, must-revalidate")
+	} else {
+		now := time.UTC()
+		d := time.Time{2011, 4, 11, 3, 0, 0, time.Monday, 0, "UTC"}
+		ONE_WEEK := int64(604800)
+		ttl := ONE_WEEK - (now.Seconds() - d.Seconds()) % ONE_WEEK
+		w.SetHeader("Cache-Control", fmt.Sprintf("max-age=%d, must-revalidate", ttl))
+	}
+}
+
 func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path != "/" {
 		NotFoundHandler(w, req)
 		return
 	}
-
+	set_cache_control(w, req)
 	page := newPage("")
 
 	bw := bufio.NewWriter(nil)
@@ -69,6 +83,7 @@ func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func RecipesHandler(w http.ResponseWriter, req *http.Request) {
+	set_cache_control(w, req)
 	var r = Recipes[path.Base(req.URL.Path)]
 	if r != nil {
 		var p = strings.Replace(req.URL.Path, "recipes", "recipe", -1)
@@ -104,6 +119,7 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func RecipeHandler(w http.ResponseWriter, req *http.Request) {
+	set_cache_control(w, req)
 	var r = Recipes[path.Base(req.URL.Path)]
 	if r == nil {
 		NotFoundHandler(w, req)
