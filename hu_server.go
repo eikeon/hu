@@ -109,7 +109,7 @@ func RecipeHandler(w http.ResponseWriter, req *http.Request) {
 		NotFoundHandler(w, req)
 		return
 	}
-	page := newPage(r.Name)
+	page := newPage(r.Name + " Recipe")
 	page.Recipe = r
 
 	site_template.Execute(w, page)
