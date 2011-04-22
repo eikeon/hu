@@ -30,11 +30,12 @@
       </ul>
     </article>{.end}{.section Recipe}
     <article itemscope itemtype="http://data-vocabulary.org/Recipe">
+      {.section Photo}<img itemprop="photo" src="{@}"/>{.end}
       <header>
 	<h1 itemprop="name">{.section Title}{@}{.end}</h1>
       </header>
       <p>{Description}</p>
-      <hr>{.section Ingredients}
+      {.section Ingredients}
       <section class="ingredients">
 	<ul class="ingredients">{.repeated section Ingredients}
 	  <li itemprop="ingredient" itemscope itemtype="http://data-vocabulary.org/RecipeIngredient"><span itemprop="name">{@}</span></li>{.end}

@@ -16,6 +16,7 @@ type Recipe struct {
 	Description string
 	Ingredients []string
 	Directions []string
+	Photo string
 }
 
 func RecipeFromFile(filename string) *Recipe {
@@ -89,7 +90,23 @@ func RecipeFromFile(filename string) *Recipe {
 		directions = append(directions, direction)
 	}
 
-	return &Recipe{Name: path.Base(filename), Original: string(result), Description: description, Ingredients: ingredients, Directions: directions}
+	var photo string
+	for {
+		line, isPrefix, err := input.ReadLine()
+		if err != nil {
+			break;
+		}
+		if isPrefix {
+			log.Print("TODO")
+		}
+		var s = string(line)
+		if strings.HasPrefix(s, "Photo:") {
+			photo = strings.TrimSpace(strings.SplitAfter(s, "Photo:", 2)[1])
+		}
+	}
+
+	return &Recipe{Name: path.Base(filename), Original: string(result), Description: description, Ingredients: ingredients, Directions: directions,
+	Photo: photo}
 }
 
 func (r *Recipe) Id() string {
