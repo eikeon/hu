@@ -58,7 +58,7 @@ func set_cache_control(w http.ResponseWriter, req *http.Request) {
 		now := time.UTC()
 		d := time.Time{2011, 4, 11, 3, 0, 0, time.Monday, 0, "UTC"}
 		ONE_WEEK := int64(604800)
-		ttl := ONE_WEEK - (now.Seconds() - d.Seconds()) % ONE_WEEK
+		ttl := ONE_WEEK - (now.Seconds()-d.Seconds())%ONE_WEEK
 		w.SetHeader("Cache-Control", fmt.Sprintf("max-age=%d, must-revalidate", ttl))
 	}
 }

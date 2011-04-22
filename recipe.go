@@ -11,12 +11,12 @@ import (
 
 
 type Recipe struct {
-	Original string
-	Name string
+	Original    string
+	Name        string
 	Description string
 	Ingredients []string
-	Directions []string
-	Photo string
+	Directions  []string
+	Photo       string
 }
 
 func RecipeFromFile(filename string) *Recipe {
@@ -54,13 +54,13 @@ func RecipeFromFile(filename string) *Recipe {
 	for {
 		line, isPrefix, err := input.ReadLine()
 		if err != nil {
-			break;
+			break
 		}
 		if isPrefix {
 			log.Print("TODO")
 		}
 		var ingredient = string(line)
-		if len(strings.TrimSpace(ingredient))==0 {
+		if len(strings.TrimSpace(ingredient)) == 0 {
 			break
 		}
 		ingredients = append(ingredients, ingredient)
@@ -69,13 +69,13 @@ func RecipeFromFile(filename string) *Recipe {
 	for {
 		line, isPrefix, err := input.ReadLine()
 		if err != nil {
-			break;
+			break
 		}
 		if isPrefix {
 			log.Print("TODO")
 		}
 		var direction = string(line)
-		if len(strings.TrimSpace(direction))==0 {
+		if len(strings.TrimSpace(direction)) == 0 {
 			break
 		}
 
@@ -94,7 +94,7 @@ func RecipeFromFile(filename string) *Recipe {
 	for {
 		line, isPrefix, err := input.ReadLine()
 		if err != nil {
-			break;
+			break
 		}
 		if isPrefix {
 			log.Print("TODO")
@@ -106,7 +106,7 @@ func RecipeFromFile(filename string) *Recipe {
 	}
 
 	return &Recipe{Name: path.Base(filename), Original: string(result), Description: description, Ingredients: ingredients, Directions: directions,
-	Photo: photo}
+		Photo: photo}
 }
 
 func (r *Recipe) Id() string {
