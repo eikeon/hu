@@ -120,6 +120,7 @@ var addr = flag.String("addr", ":9999", "http service address")
 func main() {
 	flag.Parse()
 	http.Handle("www.eikeon.com/", http.RedirectHandler("http://eikeon.com/", http.StatusMovedPermanently))
+	http.Handle("/", http.RedirectHandler("http://eikeon.com/", http.StatusMovedPermanently))
 	http.Handle("eikeon.com/", http.HandlerFunc(HomePageHandler))
 	http.Handle("eikeon.com/recipes/", http.HandlerFunc(RecipesHandler))
 	http.Handle("eikeon.com/recipe/", http.HandlerFunc(RecipeHandler))
