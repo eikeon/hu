@@ -5,48 +5,19 @@ import (
 	"path"
 	"flag"
 	"http"
-	"io"
 	"log"
 	"strings"
-	"template"
-	"crypto/md5"
 	"fmt"
 	"time"
-	"bytes"
 )
 
-
-func UrlHtmlFormatter(w io.Writer, fmt string, v ...interface{}) {
-	template.HTMLEscape(w, []byte(http.URLEscape(v[0].(string))))
-}
-
-var fmap = template.FormatterMap{
-	"html":     template.HTMLFormatter,
-	"url+html": UrlHtmlFormatter,
-}
-
-var site_template = template.MustParseFile("site.html", fmap)
-
-
-type page struct {
-	Title      string
-	Stylesheet string
-	NotFound   bool
-	Recipes    []*Recipe
-	Recipe     *Recipe
-}
-
-func newPage(title string) *page {
-	//return &page{Title: title, Stylesheet: "http://static.eikeon.com/site.css^aa933dc876627b1a85509061aaad0bed"}
-	return &page{Title: title, Stylesheet: "http://static.eikeon.com/site.css"}
-}
 
 func NotFoundHandler(w http.ResponseWriter, req *http.Request) {
 	w.SetHeader("Cache-Control", "max-age=10, must-revalidate")
 	w.WriteHeader(http.StatusNotFound)
 	page := newPage("Not Found")
 	page.NotFound = true
-	site_template.Execute(w, page)
+	page.Write(w, req)
 	return
 }
 
@@ -62,15 +33,6 @@ func setCacheControl(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func RespondWithPage(w http.ResponseWriter, req *http.Request, p *page) {
-	var bw bytes.Buffer
-	h := md5.New()
-	mw := io.MultiWriter(&bw, h)
-	site_template.Execute(mw, p)
-	w.SetHeader("ETag", fmt.Sprintf("\"%x\"", h.Sum()))
-	w.Write(bw.Bytes())
-}
-
 func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path != "/" {
 		NotFoundHandler(w, req)
@@ -78,7 +40,7 @@ func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	setCacheControl(w, req)
 	page := newPage("")
-	RespondWithPage(w, req, page)
+	page.Write(w, req)
 }
 
 func RecipesHandler(w http.ResponseWriter, req *http.Request) {
@@ -105,8 +67,8 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 
 	page := newPage("Recipes")
 	page.Recipes = recipe_list
+	page.Write(w, req)
 
-	RespondWithPage(w, req, page)
 }
 
 func RecipeHandler(w http.ResponseWriter, req *http.Request) {
@@ -118,7 +80,7 @@ func RecipeHandler(w http.ResponseWriter, req *http.Request) {
 	setCacheControl(w, req)
 	page := newPage(r.Name + " Recipe")
 	page.Recipe = r
-	RespondWithPage(w, req, page)
+	page.Write(w, req)
 }
 
 var addr = flag.String("addr", ":9999", "http service address")
