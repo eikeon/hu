@@ -50,10 +50,8 @@ func NotFoundHandler(w http.ResponseWriter, req *http.Request) {
 	return
 }
 
-func set_cache_control(w http.ResponseWriter, req *http.Request) {
+func setCacheControl(w http.ResponseWriter, req *http.Request) {
 	if req.Header["X-Draft"] != nil {
-		log.Print("..")
-		log.Print(req.Header["X-Draft"])
 		w.SetHeader("Cache-Control", "max-age=1, must-revalidate")
 	} else {
 		now := time.UTC()
@@ -78,13 +76,12 @@ func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 		NotFoundHandler(w, req)
 		return
 	}
-	set_cache_control(w, req)
+	setCacheControl(w, req)
 	page := newPage("")
 	RespondWithPage(w, req, page)
 }
 
 func RecipesHandler(w http.ResponseWriter, req *http.Request) {
-	set_cache_control(w, req)
 	var r = Recipes[path.Base(req.URL.Path)]
 	if r != nil {
 		var p = strings.Replace(req.URL.Path, "recipes", "recipe", -1)
@@ -113,15 +110,14 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func RecipeHandler(w http.ResponseWriter, req *http.Request) {
-	set_cache_control(w, req)
 	var r = Recipes[path.Base(req.URL.Path)]
 	if r == nil {
 		NotFoundHandler(w, req)
 		return
 	}
+	setCacheControl(w, req)
 	page := newPage(r.Name + " Recipe")
 	page.Recipe = r
-
 	RespondWithPage(w, req, page)
 }
 
