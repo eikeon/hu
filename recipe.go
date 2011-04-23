@@ -7,6 +7,7 @@ import (
 	"strings"
 	"io/ioutil"
 	"encoding/line"
+	"sort"
 )
 
 
@@ -115,7 +116,7 @@ func (r *Recipe) Id() string {
 
 
 var Recipes = map[string]*Recipe{}
-
+var recipe_list RecipeArray
 
 func init() {
 	f, err := os.Open("recipes", os.O_RDONLY, 0)
@@ -131,7 +132,13 @@ func init() {
 		Recipes[recipe.Id()] = recipe
 	}
 
-	log.Print(Recipes)
+	recipe_list = make(RecipeArray, len(Recipes))
+	var i int
+	for _, r := range Recipes {
+		recipe_list[i] = r
+		i += 1
+	}
+	sort.Sort(recipe_list)
 }
 
 

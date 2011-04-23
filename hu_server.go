@@ -1,7 +1,6 @@
 package main
 
 import (
-	"sort"
 	"path"
 	"flag"
 	"http"
@@ -56,14 +55,6 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 		NotFoundHandler(w, req)
 		return
 	}
-
-	recipe_list := make(RecipeArray, len(Recipes))
-	var i int
-	for _, r := range Recipes {
-		recipe_list[i] = r
-		i += 1
-	}
-	sort.Sort(recipe_list)
 
 	page := newPage("Recipes")
 	page.Recipes = recipe_list
