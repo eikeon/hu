@@ -1,3 +1,6 @@
+  - add handling for compressed encoding(s)
+    //w.SetHeader("Vary", "Accept-Encoding") 
+
 Add a Tagger:
 
   - add a real tagger; ideally one that is dictionary backed for
