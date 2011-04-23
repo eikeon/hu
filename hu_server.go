@@ -77,7 +77,6 @@ func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 	site_template.Execute(mw, page)
 
 	//w.SetHeader("Vary", "Accept-Encoding")
-	w.SetHeader("Cache-Control", "max-age=1, must-revalidate")
 	w.SetHeader("ETag", fmt.Sprintf("\"%x\"", h.Sum()))
 	site_template.Execute(w, page)
 }
