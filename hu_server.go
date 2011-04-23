@@ -11,8 +11,8 @@ import (
 	"template"
 	"crypto/md5"
 	"fmt"
-	"bufio"
 	"time"
+	"bytes"
 )
 
 
@@ -37,7 +37,8 @@ type page struct {
 }
 
 func newPage(title string) *page {
-	return &page{Title: title, Stylesheet: "http://static.eikeon.com/site.css^aa933dc876627b1a85509061aaad0bed"}
+	//return &page{Title: title, Stylesheet: "http://static.eikeon.com/site.css^aa933dc876627b1a85509061aaad0bed"}
+	return &page{Title: title, Stylesheet: "http://static.eikeon.com/site.css"}
 }
 
 func NotFoundHandler(w http.ResponseWriter, req *http.Request) {
@@ -63,6 +64,15 @@ func set_cache_control(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func RespondWithPage(w http.ResponseWriter, req *http.Request, p *page) {
+	var bw bytes.Buffer
+	h := md5.New()
+	mw := io.MultiWriter(&bw, h)
+	site_template.Execute(mw, p)
+	w.SetHeader("ETag", fmt.Sprintf("\"%x\"", h.Sum()))
+	w.Write(bw.Bytes())
+}
+
 func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path != "/" {
 		NotFoundHandler(w, req)
@@ -70,15 +80,7 @@ func HomePageHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	set_cache_control(w, req)
 	page := newPage("")
-
-	bw := bufio.NewWriter(nil)
-	h := md5.New()
-	mw := io.MultiWriter(bw, h)
-	site_template.Execute(mw, page)
-
-	//w.SetHeader("Vary", "Accept-Encoding")
-	w.SetHeader("ETag", fmt.Sprintf("\"%x\"", h.Sum()))
-	site_template.Execute(w, page)
+	RespondWithPage(w, req, page)
 }
 
 func RecipesHandler(w http.ResponseWriter, req *http.Request) {
@@ -107,14 +109,7 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 	page := newPage("Recipes")
 	page.Recipes = recipe_list
 
-	bw := bufio.NewWriter(nil)
-	h := md5.New()
-	mw := io.MultiWriter(bw, h)
-	site_template.Execute(mw, page)
-
-	w.SetHeader("Cache-Control", "max-age=1, must-revalidate")
-	w.SetHeader("ETag", fmt.Sprintf("\"%x\"", h.Sum()))
-	site_template.Execute(w, page)
+	RespondWithPage(w, req, page)
 }
 
 func RecipeHandler(w http.ResponseWriter, req *http.Request) {
@@ -127,7 +122,7 @@ func RecipeHandler(w http.ResponseWriter, req *http.Request) {
 	page := newPage(r.Name + " Recipe")
 	page.Recipe = r
 
-	site_template.Execute(w, page)
+	RespondWithPage(w, req, page)
 }
 
 var addr = flag.String("addr", ":9999", "http service address")
