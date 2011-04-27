@@ -8,6 +8,7 @@ import (
 	"crypto/md5"
 	"bytes"
 	"fmt"
+	"recipe"
 )
 
 func UrlHtmlFormatter(w io.Writer, fmt string, v ...interface{}) {
@@ -26,12 +27,12 @@ type page struct {
 	Title      string
 	Stylesheet string
 	NotFound   bool
-	Recipes    []*Recipe
-	Recipe     *Recipe
+	Recipes    []*recipe.Recipe
+	Recipe     *recipe.Recipe
 }
 
 func newPage(title string) *page {
-	return &page{Title: title, Stylesheet: "http://static.eikeon.com/site.css"}
+	return &page{Title: title, Stylesheet: "http://static.eikeon.com/site.css^39d51ea9dec24fd6ba35fa1fc033942e"}
 }
 
 func (p *page) Write(w http.ResponseWriter, req *http.Request) (err os.Error) {
