@@ -27,7 +27,7 @@ func RecipeFromFile(filename string) *Recipe {
 		return nil
 	}
 
-	f, err := os.Open(filename, os.O_RDONLY, 0)
+	f, err := os.Open(filename)
 	if err != nil {
 		log.Print("open", err)
 	}
@@ -119,7 +119,7 @@ var Recipes = map[string]*Recipe{}
 var recipe_list RecipeArray
 
 func init() {
-	f, err := os.Open("recipes", os.O_RDONLY, 0)
+	f, err := os.Open("recipes")
 	if err != nil {
 		log.Print("open", err)
 	}

@@ -13,7 +13,7 @@ import (
 
 
 func NotFoundHandler(w http.ResponseWriter, req *http.Request) {
-	w.SetHeader("Cache-Control", "max-age=10, must-revalidate")
+	w.Header().Set("Cache-Control", "max-age=10, must-revalidate")
 	w.WriteHeader(http.StatusNotFound)
 	page := newPage("Not Found")
 	page.NotFound = true
@@ -23,13 +23,13 @@ func NotFoundHandler(w http.ResponseWriter, req *http.Request) {
 
 func setCacheControl(w http.ResponseWriter, req *http.Request) {
 	if req.Header["X-Draft"] != nil {
-		w.SetHeader("Cache-Control", "max-age=1, must-revalidate")
+		w.Header().Set("Cache-Control", "max-age=1, must-revalidate")
 	} else {
 		now := time.UTC()
 		d := time.Time{2011, 4, 11, 3, 0, 0, time.Monday, 0, "UTC"}
 		ONE_WEEK := int64(604800)
 		ttl := ONE_WEEK - (now.Seconds()-d.Seconds())%ONE_WEEK
-		w.SetHeader("Cache-Control", fmt.Sprintf("max-age=%d, must-revalidate", ttl))
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, must-revalidate", ttl))
 	}
 }
 
@@ -47,7 +47,7 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 	var r = recipe.Recipes[path.Base(req.URL.Path)]
 	if r != nil {
 		var p = strings.Replace(req.URL.Path, "recipes", "recipe", -1)
-		w.SetHeader("Location", p)
+		w.Header().Set("Location", p)
 		w.WriteHeader(http.StatusMovedPermanently)
 		return
 	}

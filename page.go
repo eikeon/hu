@@ -41,7 +41,7 @@ func (p *page) Write(w http.ResponseWriter, req *http.Request) (err os.Error) {
 	mw := io.MultiWriter(&bw, h)
 	err = site_template.Execute(mw, p)
 	if err == nil {
-		w.SetHeader("ETag", fmt.Sprintf("\"%x\"", h.Sum()))
+		w.Header().Set("ETag", fmt.Sprintf("\"%x\"", h.Sum()))
 		w.Write(bw.Bytes())
 	}
 	return err
