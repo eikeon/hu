@@ -7,10 +7,9 @@
   </head> 
   <body> 
     <header> 
-      <h1><a href="/">Daniel Krech</a></h1>
-      <p class="tagline">食品当作药品</p>
       <nav> 
 	<ul>
+	  <li><a href="/">Daniel Krech</a></li>
 	  <li><a href="/recipes/">Recipes</a></li>
 	</ul>
       </nav> 
@@ -30,25 +29,24 @@
       </ul>
     </article>{.end}{.section Recipe}
     <article itemscope itemtype="http://data-vocabulary.org/Recipe">
-      {.section Photo}<img itemprop="photo" src="{@}"/>{.end}
       <header>
 	<h1 itemprop="name">{.section Title}{@}{.end}</h1>
       </header>
       <p>{Description}</p>
+      <hr>
       {.section Ingredients}
       <section class="ingredients">
 	<ul class="ingredients">{.repeated section Ingredients}
 	  <li itemprop="ingredient" itemscope itemtype="http://data-vocabulary.org/RecipeIngredient"><span itemprop="name">{@}</span></li>{.end}
 	</ul>
       </section>{.end}{.section Directions}
-      <section>
-	<ol class="directions" itemprop="instructions">{.repeated section Directions}
-	  <li>{@}</li>{.end}
-	</ol>
+      <section class="directions" itemprop="instructions">{.repeated section Directions}
+	  <p>{@}</p>{.end}
       </section>{.end}
+      {.section Photo}<img itemprop="photo" src="{@}"/>{.end}
     </article>{.end}
     <footer>
-      <p>&#169; 2010&#8211;2011 <a href="http://eikeon.com/">Daniel Krech</a></p> 
+      <p>&#169; 2010&#8211;2011 <a href="http://www.eikeon.com/">Daniel Krech</a> 食品当作药品</p>
     </footer>
   </body> 
 </html>

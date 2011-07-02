@@ -32,7 +32,7 @@ type page struct {
 }
 
 func newPage(title string) *page {
-	return &page{Title: title, Stylesheet: "http://static.eikeon.com/site.css^39d51ea9dec24fd6ba35fa1fc033942e"}
+	return &page{Title: title, Stylesheet: "http://static.eikeon.com/site.css^9ea5e7712a4d5fc2223c51c764669c20"}
 }
 
 func (p *page) Write(w http.ResponseWriter, req *http.Request) (err os.Error) {
@@ -42,6 +42,7 @@ func (p *page) Write(w http.ResponseWriter, req *http.Request) (err os.Error) {
 	err = site_template.Execute(mw, p)
 	if err == nil {
 		w.Header().Set("ETag", fmt.Sprintf("\"%x\"", h.Sum()))
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", bw.Len()))
 		w.Write(bw.Bytes())
 	}
 	return err
