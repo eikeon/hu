@@ -29,8 +29,9 @@ func setCacheControl(w http.ResponseWriter, req *http.Request) {
 		d := time.Time{2011, 4, 11, 3, 0, 0, time.Monday, 0, "UTC"}
 		ONE_WEEK := int64(604800)
 		ttl := ONE_WEEK - (now.Seconds()-d.Seconds())%ONE_WEEK
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, must-revalidate", ttl))
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", ttl))
 	}
+	w.Header().Set("Vary", "Accept-Encoding")
 }
 
 func HomePageHandler(w http.ResponseWriter, req *http.Request) {
@@ -75,15 +76,25 @@ func RecipeHandler(w http.ResponseWriter, req *http.Request) {
 	page.Write(w, req)
 }
 
+func CanonicalHostHandler(w http.ResponseWriter, req *http.Request) {
+	var canonical = "www.eikeon.com"
+	if req.Host != canonical {
+		http.Redirect(w, req, "http://" + canonical + req.URL.Path, http.StatusMovedPermanently)
+	} else {
+		NotFoundHandler(w, req)
+	}
+	// TODO: set CacheControl
+}
+
 var addr = flag.String("addr", ":9999", "http service address")
 
 func main() {
 	flag.Parse()
-	http.Handle("www.eikeon.com/", http.RedirectHandler("http://eikeon.com/", http.StatusMovedPermanently))
-	http.Handle("/", http.RedirectHandler("http://eikeon.com/", http.StatusMovedPermanently))
-	http.Handle("eikeon.com/", http.HandlerFunc(HomePageHandler))
-	http.Handle("eikeon.com/recipes/", http.HandlerFunc(RecipesHandler))
-	http.Handle("eikeon.com/recipe/", http.HandlerFunc(RecipeHandler))
+
+	http.Handle("eikeon.com/", http.HandlerFunc(CanonicalHostHandler))
+	http.Handle("hu.eikeon.com/", http.HandlerFunc(HomePageHandler))
+	http.Handle("hu.eikeon.com/recipes/", http.HandlerFunc(RecipesHandler))
+	http.Handle("hu.eikeon.com/recipe/", http.HandlerFunc(RecipeHandler))
 
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
