@@ -80,7 +80,7 @@ func RecipeHandler(w http.ResponseWriter, req *http.Request) {
 func CanonicalHostHandler(w http.ResponseWriter, req *http.Request) {
 	var canonical = "www.eikeon.com"
 	if req.Host != canonical {
-		http.Redirect(w, req, "http://" + canonical + req.URL.Path, http.StatusMovedPermanently)
+		http.Redirect(w, req, "http://"+canonical+req.URL.Path, http.StatusMovedPermanently)
 	} else {
 		NotFoundHandler(w, req)
 	}
@@ -112,7 +112,6 @@ func main() {
 	Address = flag.String("address", ":9999", "http service address")
 	StaticRoot = flag.String("root", "static", "...")
 	flag.Parse()
-
 
 	http.Handle("eikeon.com/", http.HandlerFunc(CanonicalHostHandler))
 	http.Handle("/", http.HandlerFunc(PageHandler))
