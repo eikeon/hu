@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"path"
 	"flag"
 	"http"
@@ -34,14 +35,14 @@ func setCacheControl(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Vary", "Accept-Encoding")
 }
 
-func HomePageHandler(w http.ResponseWriter, req *http.Request) {
-	if req.URL.Path != "/" {
-		NotFoundHandler(w, req)
+func PageHandler(w http.ResponseWriter, req *http.Request) {
+	if req.URL.Path == "/" {
+		setCacheControl(w, req)
+		page := newPage("")
+		page.Write(w, req)
 		return
 	}
-	setCacheControl(w, req)
-	page := newPage("")
-	page.Write(w, req)
+	StaticHandler(w, req)
 }
 
 func RecipesHandler(w http.ResponseWriter, req *http.Request) {
@@ -86,17 +87,39 @@ func CanonicalHostHandler(w http.ResponseWriter, req *http.Request) {
 	// TODO: set CacheControl
 }
 
-var addr = flag.String("addr", ":9999", "http service address")
+func StaticHandler(w http.ResponseWriter, req *http.Request) {
+	var filename = path.Join(*StaticRoot, req.URL.Path)
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Print(err)
+		NotFoundHandler(w, req)
+		return
+	}
+	err = f.Close()
+
+	if strings.Contains(req.URL.Path, "^") {
+		w.Header().Set("Cache-Control", "max-age=3153600")
+	} else {
+		w.Header().Set("Cache-Control", "max-age=1, must-revalidate")
+	}
+	http.ServeFile(w, req, filename)
+}
+
+var Address *string
+var StaticRoot *string
 
 func main() {
+	Address = flag.String("address", ":9999", "http service address")
+	StaticRoot = flag.String("root", "static", "...")
 	flag.Parse()
 
-	http.Handle("eikeon.com/", http.HandlerFunc(CanonicalHostHandler))
-	http.Handle("hu.eikeon.com/", http.HandlerFunc(HomePageHandler))
-	http.Handle("hu.eikeon.com/recipes/", http.HandlerFunc(RecipesHandler))
-	http.Handle("hu.eikeon.com/recipe/", http.HandlerFunc(RecipeHandler))
 
-	err := http.ListenAndServe(*addr, nil)
+	http.Handle("eikeon.com/", http.HandlerFunc(CanonicalHostHandler))
+	http.Handle("/", http.HandlerFunc(PageHandler))
+	http.Handle("/recipes/", http.HandlerFunc(RecipesHandler))
+	http.Handle("/recipe/", http.HandlerFunc(RecipeHandler))
+
+	err := http.ListenAndServe(*Address, nil)
 	if err != nil {
 		log.Print("ListenAndServe:", err)
 	}

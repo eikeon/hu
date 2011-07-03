@@ -32,7 +32,7 @@ type page struct {
 }
 
 func newPage(title string) *page {
-	return &page{Title: title, Stylesheet: "http://static.eikeon.com/site.css^9ea5e7712a4d5fc2223c51c764669c20"}
+	return &page{Title: title, Stylesheet: "/site^9ea5e7712a4d5fc2223c51c764669c20.css"}
 }
 
 func (p *page) Write(w http.ResponseWriter, req *http.Request) (err os.Error) {
