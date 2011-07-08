@@ -29,6 +29,8 @@
       </ul>
     </article>{.end}{.section Recipe}
     <article itemscope itemtype="http://data-vocabulary.org/Recipe">
+      <div style="display: table">
+	<div style="display: table-cell">
       <header>
 	<h1 itemprop="name">{.section Title}{@}{.end}</h1>
       </header>
@@ -44,6 +46,12 @@
 	  <p>{@}</p>{.end}
       </section>{.end}
       {.section Photo}<img itemprop="photo" src="{@}"/>{.end}
+	</div>
+	<aside>
+	  <div id="fb-root" style="float: right"></div><script src="http://connect.facebook.net/en_US/all.js#appId=167897206610207&amp;xfbml=1"></script><fb:like href="http://www.eikeon.com/recipe/{Id}/" send="true" width="450" show_faces="true" font=""></fb:like>
+	  <div id="fb-root"></div><script src="http://connect.facebook.net/en_US/all.js#xfbml=1"></script><fb:comments href="http://www.eikeon.com/recipe/{Id}/" num_posts="3" width="400"></fb:comments>
+	</aside>
+      </div>
     </article>{.end}
     <footer>
       <p>&#169; 2010&#8211;2011 <a href="http://www.eikeon.com/">Daniel Krech</a> 食品当作药品</p>
