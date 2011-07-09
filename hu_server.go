@@ -72,6 +72,10 @@ func RecipeHandler(w http.ResponseWriter, req *http.Request) {
 		NotFoundHandler(w, req)
 		return
 	}
+	if req.URL.Path[len(req.URL.Path)-1] != '/' {
+		http.Redirect(w, req, req.URL.Path+"/", http.StatusMovedPermanently)
+		return
+	}
 	setCacheControl(w, req)
 	page := newPage(r.Name + " Recipe")
 	page.Recipe = r
