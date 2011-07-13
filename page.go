@@ -3,12 +3,14 @@ package main
 import (
 	"http"
 	"io"
+	"io/ioutil"
 	"template"
 	"os"
 	"crypto/md5"
 	"bytes"
 	"fmt"
 	"recipe"
+	"log"
 )
 
 func UrlHtmlFormatter(w io.Writer, fmt string, v ...interface{}) {
@@ -21,7 +23,15 @@ var fmap = template.FormatterMap{
 }
 
 var site_template = template.MustParseFile("site.html", fmap)
+var site_style string
 
+func init() {
+	site_style_bytes, err := ioutil.ReadFile("site.css")
+	if err!=nil {
+		log.Fatal("could not read site.css")
+	}
+	site_style = minify(string(site_style_bytes))
+}
 
 type page struct {
 	Title      string
@@ -32,7 +42,7 @@ type page struct {
 }
 
 func newPage(title string) *page {
-	return &page{Title: title, Stylesheet: "/site^b8a9e95ed8b90c765a216ff17bf67510.css"}
+	return &page{Title: title, Stylesheet: site_style}
 }
 
 func (p *page) Write(w http.ResponseWriter, req *http.Request) (err os.Error) {

@@ -3,7 +3,7 @@
       xmlns:fb="https://www.facebook.com/2008/fbml"> 
   <head> 
     <meta charset="utf-8"> 
-    <title>{.section Title}{@} « {.end}Daniel Krech</title>{.section Stylesheet}
+    <title>{.section Title}{@} « {.end}Daniel Krech</title>
     <meta property="og:title" content="{.section Title}{@}{.end}"/>
     <meta property="og:site_name" content="Daniel Krech"/>
     <meta property="fb:admins" content="756782588"/>{.section Recipe}
@@ -11,8 +11,8 @@
     <meta property="og:type" content="food"/>
     {.section Photo}<meta property="og:image" content="{@}"/>{.end}
     <meta property="og:description"
-          content="{Description}"/>{.end}
-    <link rel="stylesheet" type="text/css" href="{@}" media="all" />{.end}
+          content="{Description}"/>{.end}{.section Stylesheet}
+    <style type="text/css">{@}</style>{.end}
   </head> 
   <body> 
     <header> 
@@ -34,7 +34,7 @@
 	<h1>{.section Title}{@}{.end}</h1>
       </header>
       <ul>{.repeated section Recipes}
-	<li><a href="/recipe/{Id}/">{Name}</a></li>{.end}
+	<li><a href="/recipe/{Id}/">{Name}</a><br>{.section Photo}<img itemprop="photo" src="{@}" width="256" />{.end}</li>{.end}
       </ul>
     </article>{.end}{.section Recipe}
     <article itemscope itemtype="http://data-vocabulary.org/Recipe">
