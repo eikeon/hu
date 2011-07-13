@@ -101,6 +101,7 @@ func StaticHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	err = f.Close()
 
+	w.Header().Set("Vary", "Accept-Encoding")
 	if strings.Contains(req.URL.Path, "^") {
 		w.Header().Set("Cache-Control", "max-age=3153600")
 	} else {
