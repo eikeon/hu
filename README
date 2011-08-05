@@ -1,1 +1,1 @@
-6g hu_server.go && 6l -o hu_server hu_server.6 && ./hu_server -addr=":9999"
+

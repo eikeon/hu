@@ -1,9 +1,8 @@
 include $(GOROOT)/src/Make.inc
 
-TARG=hu_server
+TARG=hu
 GOFILES=\
-	minify.go\
-	page.go\
-	hu_server.go\
+	parser.go\
+	word.go\
 
-include $(GOROOT)/src/Make.cmd
+include $(GOROOT)/src/Make.pkg
