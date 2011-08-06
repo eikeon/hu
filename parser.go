@@ -80,3 +80,8 @@ func (p *parser) parseAs(pos PartOfSpeech) (list []Word) {
 	}
 	return
 }
+
+type Grammer struct {
+	label string
+	neighbors [][]string
+}
