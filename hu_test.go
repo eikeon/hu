@@ -163,16 +163,16 @@ func TestIngredientParse(t *testing.T) {
 	for _, ingredient := range ingredients {
 		fmt.Printf("Parsing '%v'\n", ingredient)
 
-		p := &parser{reader:strings.NewReader(ingredient)}
+		p := NewParser(strings.NewReader(ingredient))
 
 		fmt.Print("  words:")
-		for _, word := range p.parseWordList() {
+		for _, word := range p.wordList {
 			fmt.Printf(" '%v'", word)
 		}
 		fmt.Println()
 
 		for _, pos := range pos_list {
-			p := &parser{reader:strings.NewReader(ingredient)}
+			p := NewParser(strings.NewReader(ingredient))
 			r := p.parseAs(pos)
 			if len(r)>0 {
 				fmt.Printf("  with %v\n    -> %v\n", pos, r)

@@ -10,6 +10,21 @@ import (
 	"encoding/base64"
 )
 
+type PartOfSpeech struct {
+	label string
+	neighbors []string
+}
+
+type Grammer struct {
+	label string
+	neighbors [][]string
+}
+
+type Term struct {
+	Label string
+	PartOfSpeech string
+	Definition []Term
+}
 
 // http://en.wikipedia.org/wiki/Word
 //
@@ -17,6 +32,13 @@ import (
 //   http://en.wiktionary.org/w/api.php?action=parse&page=,&prop=wikitext&format=json
 //
 type Word string
+
+func (w *Word) Terms() (terms []Term) {
+	for _, p := range w.PartsOfSpeech() {
+		terms = append(terms, Term{Label: string(*w), PartOfSpeech: p})
+	}
+	return terms
+}
 
 func (w *Word) PartsOfSpeech() []string {
 	s := string(*w)

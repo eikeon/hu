@@ -39,6 +39,7 @@ type page struct {
 	NotFound   bool
 	Recipes    []*recipe.Recipe
 	Recipe     *recipe.Recipe
+	// TODO: add baseURL and use URL.ParseURL to resolve relative URLs such as the photo URLs.
 }
 
 func newPage(title string) *page {

@@ -10,78 +10,59 @@ import (
 
 // A parser for taking words back apart.
 type parser struct {
-	reader io.RuneScanner
-	word Word
-	position int
+	wordList []Word
 }
 
-//func NewParser(reader io.RuneReader) *parser { return &Parser{} }
-
-// Advance to next word 
-func (p *parser) next() {
-	var s Word = ""
-	rune, _, err := p.reader.ReadRune()
-	if err != nil {
-		p.word = s
-		return
-	}
-	s = Word(string(rune))
-	if rune==' ' {
-		p.word = s
-		return 
-	}
+func NewParser(reader io.RuneScanner) *parser {
+	p := &parser{}
 	for {
-		rune, size, err := p.reader.ReadRune()
-		p.position += size
+		var s Word = ""
+		rune, _, err := reader.ReadRune()
 		if err != nil {
-			p.word = s
-			return
-		}
-		if rune == ',' || rune == ' ' {
-			p.word = s
-			p.reader.UnreadRune()
-			return
-		}
-		s = s + Word(string(rune))
-	}
-}
-
-func (p *parser) parseWordList() (list []Word) {
-	for {
-		p.next()
-		w := p.word
-		if w=="" {
+			//p.wordList = append(p.wordList, s)
 			break
 		}
-		list = append(list, w)
-	}
-	return
-}
-
-type PartOfSpeech struct {
-	label string
-	neighbors []string
-}
-
-func (p *parser) parseAs(pos PartOfSpeech) (list []Word) {
-    for i := 0; i < len(pos.neighbors); i++ {
-		p.next()
-		w := p.word
-		if w.HasPartOfSpeech(pos.neighbors[i])==false {
-			list = list[0:0]
-			return
-		} else {
-			list = append(list, w)
+		s = Word(string(rune))
+		if rune==' ' {
+			p.wordList = append(p.wordList, s)
+			continue
+		}
+		for {
+			rune, _, err := reader.ReadRune()
+			//p.position += size
+			if err != nil {
+				p.wordList = append(p.wordList, s)
+				break
+			}
+			if rune == ',' || rune == ' ' {
+				p.wordList = append(p.wordList, s)
+				reader.UnreadRune()
+				break
+			}
+			s = s + Word(string(rune))
 		}
 	}
-	p.next()
-	if p.word!="" { // we didn't reach the end
+	return p
+}
+
+func (p *parser) parseAs(pos PartOfSpeech) (list []Term) {
+	words := p.wordList
+    for i := 0; i < len(pos.neighbors); i++ {
+		w := words[i]
+		match := false
+		for _, t:= range(w.Terms()) {
+			if t.PartOfSpeech==pos.neighbors[i] {
+				list = append(list, t)
+				match = true
+				break
+			}
+		}
+		if match==false {
+			break
+		}
+	}
+	if len(words)!=len(list) {
 		list = list[0:0]
 	}
 	return
-}
-
-type Grammer struct {
-	label string
-	neighbors [][]string
 }
