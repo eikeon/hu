@@ -10,21 +10,13 @@ import (
 	"encoding/base64"
 )
 
-type PartOfSpeech struct {
-	label string
-	neighbors []string
-}
-
-type Grammer struct {
-	label string
-	neighbors [][]string
-}
-
 type Term struct {
 	Label string
 	PartOfSpeech string
 	Definition []Term
 }
+
+var posCache = map[string] []string {}
 
 // http://en.wikipedia.org/wiki/Word
 //
@@ -35,13 +27,17 @@ type Word string
 
 func (w *Word) Terms() (terms []Term) {
 	for _, p := range w.PartsOfSpeech() {
-		terms = append(terms, Term{Label: string(*w), PartOfSpeech: p})
+		terms = append(terms, Term{Label: w.String(), PartOfSpeech: p})
 	}
 	return terms
 }
 
 func (w *Word) PartsOfSpeech() []string {
-	s := string(*w)
+	v, ok := posCache[w.String()]
+	if ok {
+		return v
+	}
+	s := w.String()
 	if s == "1" || s == "2" || s == "3" || s == "4" || s == "5" ||
 		s == "6" || s == "7" || s == "8" || s == "9" || s == "0" {
 		return []string{"quantity"}
@@ -49,7 +45,12 @@ func (w *Word) PartsOfSpeech() []string {
 	if s == " " {
 		return []string{"space"}
 	}
-	return w.wiktionaryPartsOfSpeech()
+	if s == "," {
+		return []string{"comma"}
+	}
+	pos := w.wiktionaryPartsOfSpeech()
+	posCache[w.String()] = pos
+	return pos
 }
 
 func (w *Word) HasPartOfSpeech(pos string) bool {
@@ -62,7 +63,7 @@ func (w *Word) HasPartOfSpeech(pos string) bool {
 }
 
 func (w *Word) getWikitext() string {
-	word := string(*w)
+	word := w.String()
 
 	if len(word)==0 {
 		return ""
@@ -102,5 +103,12 @@ func (w *Word) wiktionaryPartsOfSpeech() (pos []string) {
 			pos = append(pos, t[1])
 		}
 	}
+	if strings.Contains(s, "===Noun===") {
+		pos = append(pos, "en-noun")
+	}
 	return pos
+}
+
+func (w Word) String() string {
+	return string(w)
 }
