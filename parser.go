@@ -34,6 +34,9 @@ func (a Item) equal(b Item) bool {
 	if len(a.left)!=len(b.left) {
 		return false
 	}
+	if len(a.right)!=len(b.right) {
+		return false
+	}
 	for i:=0; i<len(a.left); i++ {
 		if a.left[i]!=b.left[i] {
 			return false
@@ -130,27 +133,26 @@ func (p *parser) contains(b Item) bool {
 	return false
 }
 
-func (p *parser) predict(i Item) (items []Item) {
+func (p *parser) predict(i Item) (changed bool) {
 	for _, production := range(p.productions) {
 		if i.dot<len(i.right) && production.left==i.right[i.dot] {
 			item := Item{left: production.left, right: production.right, dot: 0, start: i.end, end: i.end}
 			if p.contains(item)==false {
 				//fmt.Println("predicted: ", item)
 				p.items = append(p.items, item)
+				changed = true
 			}
 		}
 	}
 	for _, word := range(p.wordList) {
 		for _, partOfSpeech := range(word.PartsOfSpeech()) {
 			pos := partOfSpeech
-			//if partOfSpeech=="en-noun" {
-			//	pos = "NP"
-			//}
 			if i.dot<len(i.right) && pos==i.right[i.dot] {
 				item := Item{left: pos, right: []string{word.String()}, dot: 0, start: i.end, end: i.end}
 				if p.contains(item)==false {
 					//fmt.Println("predicted (pos): ", item)
 					p.items = append(p.items, item)
+					changed = true
 				}
 			}
 		}
@@ -158,18 +160,19 @@ func (p *parser) predict(i Item) (items []Item) {
 	return
 }
 
-func (p *parser) scan(i Item) (items []Item) {
+func (p *parser) scan(i Item) (changed bool) {
 	if i.dot<len(i.right) && i.start<len(p.wordList) && i.right[i.dot]==p.wordList[i.start].String() {
 		item := Item{left: i.left, right: i.right, dot: i.dot+1, start: i.start, end: i.end+1}
 		if p.contains(item)==false {
 			//fmt.Println("scanned: ", item)
 			p.items = append(p.items, item)
+			changed = true
 		}
 	}
 	return
 }
 
-func (p *parser) complete(b Item) (items []Item) {
+func (p *parser) complete(b Item) (changed bool) {
 	for _, a := range(p.items) {
 		if a.end==b.start && a.dot<len(a.right) && a.right[a.dot]==b.left {
 			item := Item{left: a.left, right: a.right, dot: a.dot+1, start: a.start, end: b.end}
@@ -177,6 +180,7 @@ func (p *parser) complete(b Item) (items []Item) {
 			if p.contains(item)==false {
 				//fmt.Println("completed: ", item)
 				p.items = append(p.items, item)
+				changed = true
 			}
 		}
 	}
@@ -204,7 +208,7 @@ func (p *parser) parse() (result [][]Term) {
 		p.complete(item)
 	}
 	for _, item := range(p.items) {
-		if item.start==0 && item.end==len(p.wordList) {
+		if item.start==0 && item.end==len(p.wordList) && item.left=="S" {
 			fmt.Println(":", item)
 			fmt.Println(item.ParseTree(p.wordList))
 		}

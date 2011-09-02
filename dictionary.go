@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"io/ioutil"
 	"path"
-	"strings"
 	"encoding/base64"
 )
 
@@ -40,13 +39,13 @@ func (w *Word) PartsOfSpeech() []string {
 	s := w.String()
 	if s == "1" || s == "2" || s == "3" || s == "4" || s == "5" ||
 		s == "6" || s == "7" || s == "8" || s == "9" || s == "0" {
-		return []string{"quantity"}
+		return []string{"Quantity"}
 	}
 	if s == " " {
-		return []string{"space"}
+		return []string{"Space"}
 	}
 	if s == "," {
-		return []string{"comma"}
+		return []string{"Comma"}
 	}
 	pos := w.wiktionaryPartsOfSpeech()
 	posCache[w.String()] = pos
@@ -96,15 +95,43 @@ func (w *Word) getWikitext() string {
 func (w *Word) wiktionaryPartsOfSpeech() (pos []string) {
 	//pos := make([]string, 0, 5)
 	s := w.getWikitext()
-	template := regexp.MustCompile("{{([^}\\|]+)(\\|([^}]+))?}}")
-	templates := template.FindAllStringSubmatch(s, -1)
-	for _, t := range templates {
-		if strings.HasPrefix(t[1], "en-") {
-			pos = append(pos, t[1])
+	english_level := 0
+	in_english := false
+	header := regexp.MustCompile("(==+)([^= ]+)(==+)")
+	for _, t := range(header.FindAllStringSubmatch(s, -1)) {
+		//fmt.Println(t)
+		if t[1]==t[3] {
+			if in_english && len(t[1])>english_level {
+				v := t[2]
+				if (v!="Quotations" &&
+					v!="Etymology" &&
+					v!="Pronunciation" &&
+					v!="Translations" &&
+					v!="Statistics" &&
+					v!="References" &&
+					v!="Synonyms" &&
+					v!="Anagrams" &&
+					v!="Antonyms") {
+					contains := false
+					for _, vv := range(pos) {
+						if v==vv {
+							contains = true
+							break
+						}
+					}
+					if contains==false {
+						pos = append(pos, v)
+					}
+				}
+			}
+			if in_english && len(t[1])==english_level {
+				in_english = false
+			}
+			if t[2]=="English" {
+				english_level = len(t[1])
+				in_english = true
+			}
 		}
-	}
-	if strings.Contains(s, "===Noun===") {
-		pos = append(pos, "en-noun")
 	}
 	return pos
 }
