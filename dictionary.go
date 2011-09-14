@@ -7,15 +7,16 @@ import (
 	"io/ioutil"
 	"path"
 	"encoding/base64"
+	"url"
 )
 
 type Term struct {
-	Label string
+	Label        string
 	PartOfSpeech string
-	Definition []Term
+	Definition   []Term
 }
 
-var posCache = map[string] []string {}
+var posCache = map[string][]string{}
 
 // http://en.wikipedia.org/wiki/Word
 //
@@ -64,7 +65,7 @@ func (w *Word) HasPartOfSpeech(pos string) bool {
 func (w *Word) getWikitext() string {
 	word := w.String()
 
-	if len(word)==0 {
+	if len(word) == 0 {
 		return ""
 	}
 	// word_re := regexp.MustCompile("^[ a-zA-Z]+$")
@@ -74,10 +75,10 @@ func (w *Word) getWikitext() string {
 	encoded_word := base64.StdEncoding.EncodeToString([]byte(word))
 	cache_file := path.Join(".wiktionary", encoded_word)
 	buf, err := ioutil.ReadFile(cache_file)
-	if err!=nil {
-		log.Print("Getting wikitext from wiktionary for: " + word, []byte(word))
-		var _URL = "http://en.wiktionary.org/w/api.php"		
-		URL := _URL + "?action=parse&page="+http.URLEscape(word)+"&prop=wikitext&format=json"
+	if err != nil {
+		log.Print("Getting wikitext from wiktionary for: "+word, []byte(word))
+		var _URL = "http://en.wiktionary.org/w/api.php"
+		URL := _URL + "?action=parse&page=" + url.QueryEscape(word) + "&prop=wikitext&format=json"
 		r, err := http.Get(URL)
 		if err != nil {
 			log.Print(err)
@@ -98,36 +99,36 @@ func (w *Word) wiktionaryPartsOfSpeech() (pos []string) {
 	english_level := 0
 	in_english := false
 	header := regexp.MustCompile("(==+)([^= ]+)(==+)")
-	for _, t := range(header.FindAllStringSubmatch(s, -1)) {
+	for _, t := range header.FindAllStringSubmatch(s, -1) {
 		//fmt.Println(t)
-		if t[1]==t[3] {
-			if in_english && len(t[1])>english_level {
+		if t[1] == t[3] {
+			if in_english && len(t[1]) > english_level {
 				v := t[2]
-				if (v!="Quotations" &&
-					v!="Etymology" &&
-					v!="Pronunciation" &&
-					v!="Translations" &&
-					v!="Statistics" &&
-					v!="References" &&
-					v!="Synonyms" &&
-					v!="Anagrams" &&
-					v!="Antonyms") {
+				if v != "Quotations" &&
+					v != "Etymology" &&
+					v != "Pronunciation" &&
+					v != "Translations" &&
+					v != "Statistics" &&
+					v != "References" &&
+					v != "Synonyms" &&
+					v != "Anagrams" &&
+					v != "Antonyms" {
 					contains := false
-					for _, vv := range(pos) {
-						if v==vv {
+					for _, vv := range pos {
+						if v == vv {
 							contains = true
 							break
 						}
 					}
-					if contains==false {
+					if contains == false {
 						pos = append(pos, v)
 					}
 				}
 			}
-			if in_english && len(t[1])==english_level {
+			if in_english && len(t[1]) == english_level {
 				in_english = false
 			}
-			if t[2]=="English" {
+			if t[2] == "English" {
 				english_level = len(t[1])
 				in_english = true
 			}

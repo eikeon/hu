@@ -27,7 +27,7 @@ func setCacheControl(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Cache-Control", "max-age=1, must-revalidate")
 	} else {
 		now := time.UTC()
-		d := time.Time{2011, 4, 11, 3, 0, 0, time.Monday, 0, "UTC"}
+		d := time.Time{2011, 4, 11, 3, 0, 0, 0, time.Monday, 0, "UTC"}
 		TTL := int64(86400)
 		ttl := TTL - (now.Seconds()-d.Seconds())%TTL  // shift
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", ttl))

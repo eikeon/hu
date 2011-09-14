@@ -13,21 +13,12 @@ import (
 	"log"
 )
 
-func UrlHtmlFormatter(w io.Writer, fmt string, v ...interface{}) {
-	template.HTMLEscape(w, []byte(http.URLEscape(v[0].(string))))
-}
-
-var fmap = template.FormatterMap{
-	"html":     template.HTMLFormatter,
-	"url+html": UrlHtmlFormatter,
-}
-
-var site_template = template.MustParseFile("site.html", fmap)
+var site_template = template.Must(template.ParseFile("site.html"))
 var site_style string
 
 func init() {
 	site_style_bytes, err := ioutil.ReadFile("site.css")
-	if err!=nil {
+	if err != nil {
 		log.Fatal("could not read site.css")
 	}
 	site_style = minify(string(site_style_bytes))
