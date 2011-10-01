@@ -51,14 +51,16 @@ func (a Item) equal(b Item) bool {
 }
 
 func (p Item) String() string {
-	s := fmt.Sprintf("%v -> ", p.left)
+	s := fmt.Sprintf("[%v -> ", p.left)
 	for i, right:= range(p.right) {
 		if i==p.dot {
 			s += "·"
 		}
 		s += fmt.Sprintf(" %v", right)
 	}
-	s += fmt.Sprintf(", %d, %d", p.start, p.end)
+	s += fmt.Sprintf(", %d, %d %v(%v)", p.start, p.end, len(p.parents), p.parents)
+	//s += fmt.Sprintf(", %d, %d %v", p.start, p.end, len(p.parents))
+	s += "]"
 	return s
 }
 
@@ -78,6 +80,18 @@ func (p Item) ParseTree(words []Word) string {
 		}
 		s += "]"
 	}
+	return s
+}
+
+func (p Item) Result(words []Word) string {
+	s := fmt.Sprintf("%v:", p.left)
+	for i:=p.start; i<p.end; i++ {
+		if i>p.start {
+			s += fmt.Sprintf(" ")
+		}
+		s += fmt.Sprintf("%v", words[i])
+	}
+	//s += "]"
 	return s
 }
 
@@ -124,22 +138,68 @@ func NewParser(reader io.RuneScanner) *parser {
 	return p
 }
 
-func (p *parser) contains(b Item) bool {
-	for _, a := range(p.items) {
+func (p *parser) intern(b Item) (index int, existing bool) {
+	for i, a := range(p.items) {
 		if a.equal(b) {
-			return true
+			index = i
+			existing = true
+			return
 		}
 	}
-	return false
+	index = len(p.items)
+	p.items = append(p.items, b)
+	return
 }
+
+func (p *parser) debug_from(operation string, item Item, from Item) {
+	item_index, existing := p.intern(item)
+	if existing==false {
+		fmt.Println("ERROR")
+	}
+	from_index, existing := p.intern(from)
+	if existing==false {
+		fmt.Println("ERROR")
+	}
+	if item_index==from_index && (item_index!=71 && item_index!=70) {
+		return
+	}
+	fmt.Println(item_index, operation, ":", item, " from ", from_index)
+}
+
+func (p *parser) debug_with(operation string, item Item, a Item, b Item) {
+	item_index, existing := p.intern(item)
+	if existing==false {
+		fmt.Println("ERROR")
+	}
+	a_index, existing := p.intern(a)
+	if existing==false {
+		fmt.Println("ERROR")
+	}
+	b_index, existing := p.intern(b)
+	if existing==false {
+		fmt.Println("ERROR")
+	}
+	fmt.Println(item_index, operation, ":", item, a_index, "with", b_index)
+}
+
+//70 predicted : [NP -> · Adjective Noun, 2, 2 0]  from  66
+//71 predicted : [NP -> · Noun Noun, 2, 2 0]  from  66
+//75 predicted (pos) : [Adjective -> · chicken, 2, 2 0]  from  70
 
 func (p *parser) predict(i Item) (changed bool) {
 	for _, production := range(p.productions) {
+		//p.debug_from("predicted?", i, i)
+		//fmt.Print("   ", production, production.left)
+		//fmt.Println("  -->", i.dot, len(i.right), "<--", i.dot<len(i.right))
+		// if i.dot<len(i.right) {
+		// 	fmt.Println(fmt.Sprintf("'%v' '%v'\n", production.left, i.right[i.dot]))
+		// }
 		if i.dot<len(i.right) && production.left==i.right[i.dot] {
 			item := Item{left: production.left, right: production.right, dot: 0, start: i.end, end: i.end}
-			if p.contains(item)==false {
-				//fmt.Println("predicted: ", item)
-				p.items = append(p.items, item)
+			_, existing:=p.intern(item)
+			//p.items[index].parents = append(p.items[index].parents, []Item{i})
+			if existing==false {
+				//p.debug_from("predicted", item, i)
 				changed = true
 			}
 		}
@@ -149,9 +209,10 @@ func (p *parser) predict(i Item) (changed bool) {
 			pos := partOfSpeech
 			if i.dot<len(i.right) && pos==i.right[i.dot] {
 				item := Item{left: pos, right: []string{word.String()}, dot: 0, start: i.end, end: i.end}
-				if p.contains(item)==false {
-					//fmt.Println("predicted (pos): ", item)
-					p.items = append(p.items, item)
+				_, existing:=p.intern(item)
+				//p.items[index].parents = append(p.items[index].parents, []Item{i})
+				if existing==false {
+					//p.debug_from("predicted (pos)", item, i)
 					changed = true
 				}
 			}
@@ -163,9 +224,10 @@ func (p *parser) predict(i Item) (changed bool) {
 func (p *parser) scan(i Item) (changed bool) {
 	if i.dot<len(i.right) && i.start<len(p.wordList) && i.right[i.dot]==p.wordList[i.start].String() {
 		item := Item{left: i.left, right: i.right, dot: i.dot+1, start: i.start, end: i.end+1}
-		if p.contains(item)==false {
-			//fmt.Println("scanned: ", item)
-			p.items = append(p.items, item)
+		_, existing:=p.intern(item)
+		//p.items[index].parents = append(p.items[index].parents, []Item{i})
+		if existing==false {
+			//p.debug_from("scanned", item, i)
 			changed = true
 		}
 	}
@@ -173,16 +235,32 @@ func (p *parser) scan(i Item) (changed bool) {
 }
 
 func (p *parser) complete(b Item) (changed bool) {
-	for _, a := range(p.items) {
-		if a.end==b.start && a.dot<len(a.right) && a.right[a.dot]==b.left {
+	//for _, a := range(p.items) {
+	for i:=0; i<len(p.items); i++ {
+		a:= p.items[i]
+		//fmt.Println("item: ", b)
+		if a.end==b.start && a.dot<len(a.right) && a.right[a.dot]==b.left && b.dot>=len(b.right) {
 			item := Item{left: a.left, right: a.right, dot: a.dot+1, start: a.start, end: b.end}
-			item.parents = append(item.parents, []Item{a, b})
-			if p.contains(item)==false {
-				//fmt.Println("completed: ", item)
-				p.items = append(p.items, item)
+			index, existing:=p.intern(item)
+			new_parent := []Item{a, b}
+			p.items[index].parents = append(p.items[index].parents, new_parent)
+			if existing==false {
+				//i = 0
+				//p.debug_with("completed", p.items[index], a, b)
 				changed = true
 			}
 		}
+		// if b.end==a.start && b.dot<len(b.right) && b.right[b.dot]==a.left && b.dot>=len(b.right) {
+		// 	item := Item{left: b.left, right: b.right, dot: b.dot+1, start: b.start, end: a.end}
+		// 	index, existing:=p.intern(item)
+		// 	new_parent := []Item{b, a}
+		// 	p.items[index].parents = append(p.items[index].parents, new_parent)
+		// 	if existing==false {
+		// 		//i = 0
+		// 		//p.debug_with("completed", p.items[index], b, a)
+		// 		changed = true
+		// 	}
+		// }
 	}
 	return
 }
@@ -195,23 +273,103 @@ func (p *parser) parse() (result [][]Term) {
 	}
 	fmt.Println()
 
+	// for _, word := range(p.wordList) {
+	// 	for _, partOfSpeech := range(word.PartsOfSpeech()) {
+	// 		pos := partOfSpeech
+	// 		prod := production{left: pos, right: []string{word.String()}}
+	// 		p.productions = append(p.productions, prod)
+	// 	}
+	// }
+
 	for _, production := range(p.productions) {
 		if production.left=="S" {
 			item := Item{left: production.left, right: production.right, dot: 0, start: 0, end: 0}
-			p.items = append(p.items, item)
+			p.intern(item)
 		}
 	}
 	for i:=0; i<len(p.items); i++ {
 		item := p.items[i]
-		p.predict(item)
-		p.scan(item)
-		p.complete(item)
+		//fmt.Println(i)
+		for {
+			if (p.predict(item) || p.scan(item) || p.complete(item))==false {
+				break
+			}
+			//i = 0
+		}
 	}
 	for _, item := range(p.items) {
 		if item.start==0 && item.end==len(p.wordList) && item.left=="S" {
 			fmt.Println(":", item)
-			fmt.Println(item.ParseTree(p.wordList))
+			//var items []Item
+			//items = append(items, item)
+			// out := make(chan string, 100)
+			// go p.Result(items, out, 0)
+			// for r:= range(out) {
+			// 	fmt.Println(r)
+			// }
 		}
 	}
 	return
 }
+
+func (p *parser) Result(items []Item, out chan string, depth int) {
+	leaf := true
+	ss := "["
+	for i, item := range(items) {
+		//fmt.Println(len(item.parents))
+	 	//ss += item.Result(p.wordList)
+	 	ss += fmt.Sprintf("%v (%v,%v)", item, item.dot, len(item.parents))
+		// if item.dot!=0 {
+		// 	leaf = false
+		// }
+		//fmt.Printf("%v (%v)\n", item, item.dot)
+		if item.dot==1 && len(item.right)!=1 {
+			leaf = false
+		}
+		if item.dot==1 && len(item.right)==1 && len(item.parents)>0 {
+			leaf = false
+		}
+		//if item.dot<=len(item.right) && len(item.parents)==0 {
+		//    leaf = false
+		//}
+		if item.end - item.start!=item.dot || item.dot>1{
+			leaf = false
+		}
+	 	if i<len(items)-1 {
+	 	 	ss += ", "
+	 	}
+	}
+	ss += "]"
+	if leaf==true {
+		out <- ss
+	}
+	found := false
+	for i, item := range(items) {
+		if found==false && len(item.parents)>0 {
+			found = true
+	 		for _, parent:= range(item.parents) {
+				var nitems []Item
+				for j:=0; j<i; j++ {
+					if items[j].end - items[j].start > 0 {
+						nitems = append(nitems, items[j])
+					}
+				}
+				for _, pitem := range(parent) {
+					nitems = append(nitems, pitem)
+				}
+				for j:=i+1; j<len(items); j++ {
+					nitems = append(nitems, items[j])
+				}
+				fmt.Println(items, "==>", nitems)
+				if depth<2 {
+					p.Result(nitems, out, depth+1)
+				}
+			}
+		}
+	}
+
+	if depth==0 {
+		close(out)
+	}
+}
+

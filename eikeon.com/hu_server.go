@@ -9,7 +9,7 @@ import (
 	"strings"
 	"fmt"
 	"time"
-	"recipe"
+	"hu"
 )
 
 
@@ -46,7 +46,7 @@ func PageHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func RecipesHandler(w http.ResponseWriter, req *http.Request) {
-	var r = recipe.Recipes[path.Base(req.URL.Path)]
+	var r = hu.Recipes[path.Base(req.URL.Path)]
 	if r != nil {
 		var p = strings.Replace(req.URL.Path, "recipes", "recipe", -1)
 		w.Header().Set("Location", p)
@@ -60,13 +60,13 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	setCacheControl(w, req)
 	page := newPage("Recipes")
-	page.Recipes = recipe.Recipe_list
+	page.Recipes = hu.Recipe_list
 	page.Write(w, req)
 
 }
 
 func RecipeHandler(w http.ResponseWriter, req *http.Request) {
-	var r = recipe.Recipes[path.Base(req.URL.Path)]
+	var r = hu.Recipes[path.Base(req.URL.Path)]
 	if r == nil {
 		NotFoundHandler(w, req)
 		return
@@ -122,6 +122,9 @@ func main() {
 	http.Handle("/", http.HandlerFunc(PageHandler))
 	http.Handle("/recipes/", http.HandlerFunc(RecipesHandler))
 	http.Handle("/recipe/", http.HandlerFunc(RecipeHandler))
+	http.Handle("/recipe/seaweed_and_cabbage_saute/",
+		http.RedirectHandler("/recipe/seaweed_and_cabbage_sauté/",
+		http.StatusMovedPermanently))
 
 	err := http.ListenAndServe(*Address, nil)
 	if err != nil {

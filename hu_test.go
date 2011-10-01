@@ -20,6 +20,7 @@ var ingredients = []string{
 	// "1 small leek, white and light green parts only, chopped",
 	// "1 clove garlic, smashed",
 	// "3 tablespoons chopped fresh ginger, or more to taste",
+	 "3 chicken broth",
 	 "3 cups chicken broth",
 	 "3 cups water",
 	// "juice of 1 lemon, or to taste",
@@ -150,25 +151,33 @@ var ingredients = []string{
 	"2 bay leaves",
 	"sea salt"}
 
- func TestIngredientParse(t *testing.T) {
+ func TMPTestIngredientParse(t *testing.T) {
 	var productions []production
 	productions = append(productions, production{left: "S", right: []string{"SS"}})
+
 	productions = append(productions, production{left: "SS", right: []string{"Quantity", "Unit", "IP"}})
 	productions = append(productions, production{left: "SS", right: []string{"Quantity", "IP"}})
 	productions = append(productions, production{left: "SS", right: []string{"IP"}})
-	productions = append(productions, production{left: "Quantity", right: []string{}})
-	productions = append(productions, production{left: "Unit", right: []string{}})
+	//productions = append(productions, production{left: "SS", right: []string{"Quantity", "Noun", "Noun"}})
+	//productions = append(productions, production{left: "SS", right: []string{"Quantity", "Noun", "Verb"}})
+
+	productions = append(productions, production{left: "Unit", right: []string{"Noun"}})
+
 	productions = append(productions, production{left: "IP", right: []string{"Ingredient"}})
 	productions = append(productions, production{left: "IP", right: []string{"Ingredient", "Comma", "AP"}})
-	productions = append(productions, production{left: "Unit", right: []string{"Noun"}})
+
 	productions = append(productions, production{left: "Ingredient", right: []string{"NP"}})
-	productions = append(productions, production{left: "NP", right: []string{"Noun"}})
-	productions = append(productions, production{left: "NP", right: []string{"Noun", "Noun"}})
-	productions = append(productions, production{left: "NP", right: []string{"D", "N"}})
+
+	//productions = append(productions, production{left: "NP", right: []string{"Noun"}})
 	productions = append(productions, production{left: "NP", right: []string{"Adjective", "Noun"}})
+	productions = append(productions, production{left: "NP", right: []string{"Noun", "Noun"}})
+
+	//productions = append(productions, production{left: "NP", right: []string{"D", "N"}})
+
 	productions = append(productions, production{left: "AP", right: []string{"Adverb", "Verb"}})
 	productions = append(productions, production{left: "AP", right: []string{"Verb"}})
 
+	ingredients = ingredients[2:3]
 	for _, ingredient := range ingredients {
 		fmt.Printf("Parsing '%v'\n", ingredient)
 
@@ -179,7 +188,7 @@ var ingredients = []string{
 	}
  }
 
-func TestParse(t *testing.T) {
+func TmpTestParse(t *testing.T) {
 	var productions []production
 	productions = append(productions, production{left: "S", right: []string{"NP", "VP"}})
 	productions = append(productions, production{left: "NP", right: []string{"D", "N"}})

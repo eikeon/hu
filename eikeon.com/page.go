@@ -9,7 +9,7 @@ import (
 	"crypto/md5"
 	"bytes"
 	"fmt"
-	"recipe"
+	"hu"
 	"log"
 )
 
@@ -28,8 +28,8 @@ type page struct {
 	Title      string
 	Stylesheet string
 	NotFound   bool
-	Recipes    []*recipe.Recipe
-	Recipe     *recipe.Recipe
+	Recipes    []*hu.Recipe
+	Recipe     *hu.Recipe
 	// TODO: add baseURL and use URL.ParseURL to resolve relative URLs such as the photo URLs.
 }
 
@@ -46,6 +46,9 @@ func (p *page) Write(w http.ResponseWriter, req *http.Request) (err os.Error) {
 		w.Header().Set("ETag", fmt.Sprintf("\"%x\"", h.Sum()))
 		w.Header().Set("Content-Length", fmt.Sprintf("%d", bw.Len()))
 		w.Write(bw.Bytes())
+	} else {
+		log.Println("template error:", err)
 	}
+
 	return err
 }

@@ -202,3 +202,6 @@ section.directions p {
 section.photos {
     display: block;
 }
+.source {
+    font-size: 0.7em;
+}

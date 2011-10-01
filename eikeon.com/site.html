@@ -54,7 +54,12 @@
       <section class="directions" itemprop="instructions">{{range .Directions}}
           <p>{{.}}</p>{{end}}
       </section>{{end}}{{if .Photo}}
-      <img itemprop="photo" src="{{.Photo}}"/>{{end}}
+      <img itemprop="photo" src="{{.Photo}}"/>{{end}}{{if .Attributes}}
+      <dl class="source">{{range $key, $value := .Attributes}}
+	<dt>{{$key}}</dt>
+	<dd>{{$value}}</dd>{{end}}
+      </dl>{{end}}
+
         </div>
         <aside>
           <div id="fb-root" style="float: right"></div>
