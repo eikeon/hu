@@ -187,7 +187,7 @@ func (t *Tree) parse(toEOF bool) { //(next Node) {
 		}
 	}
 	t.backup()
-	t.parseAttributes()
+	//t.parseAttributes()
 	// for {
 	// 	next := t.next()
 	// 	if next.typ == itemEOF {
