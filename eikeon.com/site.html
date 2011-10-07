@@ -55,7 +55,7 @@
           <p>{{.}}</p>{{end}}
       </section>{{end}}{{if .Photo}}
       <img itemprop="photo" src="{{.Photo}}"/>{{end}}{{if .Attributes}}
-      <dl class="source">{{range $key, $value := .Attributes}}
+      <dl class="attributes">{{range $key, $value := .Attributes}}
 	<dt>{{$key}}</dt>
 	<dd>{{$value}}</dd>{{end}}
       </dl>{{end}}

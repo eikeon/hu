@@ -187,7 +187,7 @@ func (t *Tree) parse(toEOF bool) { //(next Node) {
 		}
 	}
 	t.backup()
-	//t.parseAttributes()
+	t.parseAttributes()
 	// for {
 	// 	next := t.next()
 	// 	if next.typ == itemEOF {
@@ -282,7 +282,9 @@ func (t *Tree) parseAttributes() {
 			case "Photo":
 				t.Recipe.Photo = value				
 			default:
-				t.Recipe.Attributes[key] = value
+				if key!="" {
+					t.Recipe.Attributes[key] = value
+				}
 			}
 			key = ""
 			value = ""
