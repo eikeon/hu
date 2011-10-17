@@ -32,7 +32,6 @@ func setCacheControl(w http.ResponseWriter, req *http.Request) {
 		ttl := TTL - (now.Seconds()-d.Seconds())%TTL  // shift
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", ttl))
 	}
-	w.Header().Set("Vary", "Accept-Encoding")
 }
 
 func PageHandler(w http.ResponseWriter, req *http.Request) {
@@ -101,12 +100,8 @@ func StaticHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	err = f.Close()
 
-	w.Header().Set("Vary", "Accept-Encoding")
-	if strings.Contains(req.URL.Path, "^") {
-		w.Header().Set("Cache-Control", "max-age=3153600")
-	} else {
-		w.Header().Set("Cache-Control", "max-age=1, must-revalidate")
-	}
+	setCacheControl(w, req)
+
 	http.ServeFile(w, req, filename)
 }
 
