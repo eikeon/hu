@@ -33,24 +33,24 @@ func (i item) String() string {
 type itemType int
 
 const (
-	itemError        itemType = iota // error occurred; value is text of error
+	itemError itemType = iota // error occurred; value is text of error
 	itemEOF
-	itemNewline //
-	itemWord // alphanumeric word
-	itemNumber     // simple number, including imaginary
+	itemNewline     //
+	itemWord        // alphanumeric word
+	itemNumber      // simple number, including imaginary
 	itemPunctuation //
-	itemString     // quoted string (includes quotes)
+	itemString      // quoted string (includes quotes)
 )
 
 // Make the types prettyprint.
 var itemName = map[itemType]string{
-	itemError:        "error",
-	itemEOF:          "EOF",
-	itemNewline:          "newline",
-	itemWord:         "word",
-	itemPunctuation:   "punctuation",
-	itemNumber:       "number",
-	itemString:       "string",
+	itemError:       "error",
+	itemEOF:         "EOF",
+	itemNewline:     "newline",
+	itemWord:        "word",
+	itemPunctuation: "punctuation",
+	itemNumber:      "number",
+	itemString:      "string",
 }
 
 func (i itemType) String() string {
@@ -179,7 +179,7 @@ func lexItem(l *lexer) stateFn {
 		l.backup()
 		return lexNumber
 	//case isAlphaNumeric(r):
-	case isPunctuation(r)==false:
+	case isPunctuation(r) == false:
 		l.backup()
 		return lexWord
 	default:
@@ -225,7 +225,7 @@ func lexPunctuation(l *lexer) stateFn {
 	default:
 		//l.backup()
 		return lexItem
-	}		
+	}
 	return lexPunctuation
 	// switch r := l.next(); {
 	// case r == eof:

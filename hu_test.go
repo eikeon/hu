@@ -20,9 +20,9 @@ var ingredients = []string{
 	// "1 small leek, white and light green parts only, chopped",
 	// "1 clove garlic, smashed",
 	// "3 tablespoons chopped fresh ginger, or more to taste",
-	 "3 chicken broth",
-	 "3 cups chicken broth",
-	 "3 cups water",
+	"3 chicken broth",
+	"3 cups chicken broth",
+	"3 cups water",
 	// "juice of 1 lemon, or to taste",
 	// "1/2 (seedless) english cucumber, peeled, halved lengthwise, seeded, and chopped into 1/8-inch cubes",
 	// "crème fraîche, for serving (optional)",
@@ -151,7 +151,7 @@ var ingredients = []string{
 	"2 bay leaves",
 	"sea salt"}
 
- func TMPTestIngredientParse(t *testing.T) {
+func TMPTestIngredientParse(t *testing.T) {
 	var productions []production
 	productions = append(productions, production{left: "S", right: []string{"SS"}})
 
@@ -186,7 +186,7 @@ var ingredients = []string{
 		p.parse()
 		fmt.Println()
 	}
- }
+}
 
 func TmpTestParse(t *testing.T) {
 	var productions []production
@@ -214,7 +214,7 @@ func TmpTestParse(t *testing.T) {
 		p := NewParser(strings.NewReader(ingredient))
 		p.productions = productions
 		r := p.parse()
-		if len(r)>0 {
+		if len(r) > 0 {
 			fmt.Printf("  %v\n", r)
 		}
 		fmt.Println()

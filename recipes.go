@@ -47,10 +47,8 @@ func init() {
 	sort.Sort(Recipe_list)
 }
 
-
 type RecipeArray []*Recipe
 
 func (p RecipeArray) Len() int           { return len(p) }
 func (p RecipeArray) Less(i, j int) bool { return p[i].Name < p[j].Name }
 func (p RecipeArray) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-

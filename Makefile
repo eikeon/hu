@@ -6,6 +6,7 @@ GOFILES=\
 	recipe.go\
 	recipes.go\
 	parser.go\
+	resize.go\
 	dictionary.go\
 
 include $(GOROOT)/src/Make.pkg

@@ -19,7 +19,7 @@ type Recipe struct {
 	Description string
 	Ingredients []string
 	Directions  []string
-	Attributes map[string]string
+	Attributes  map[string]string
 	Photo       string
 }
 
@@ -28,14 +28,14 @@ func (r *Recipe) Id() string {
 }
 
 func (r Recipe) String() string {
-	buffer := bytes.NewBufferString("");
+	buffer := bytes.NewBufferString("")
 	fmt.Fprintf(buffer, "%v\n\n", r.Name)
 	fmt.Fprintf(buffer, "%v\n\n", r.Description)
-	for _, i := range(r.Ingredients) {
+	for _, i := range r.Ingredients {
 		fmt.Fprintf(buffer, "%v\n", i)
 	}
 	fmt.Fprintf(buffer, "\n")
-	for _, i := range(r.Directions) {
+	for _, i := range r.Directions {
 		fmt.Fprintf(buffer, "%v\n\n", i)
 	}
 	fmt.Fprintf(buffer, "\n")
@@ -44,7 +44,7 @@ func (r Recipe) String() string {
 
 // Tree is the representation of a parsed template.
 type Tree struct {
-	Name string    // Name is the name of the template.
+	Name   string // Name is the name of the template.
 	Recipe *Recipe
 	//Root *ListNode // Root is the top-level root of the parse tree.
 	// Parsing only; cleared after parse.
@@ -265,11 +265,11 @@ func (t *Tree) parseDirection() (result string) {
 func (t *Tree) parseAttributes() {
 	key := ""
 	value := ""
-	
+
 	for {
 		switch token := t.next(); token.typ {
 		case itemWord:
-			if (key=="") {
+			if key == "" {
 				key = token.val
 				t.expect(itemPunctuation, "attribute-key") // item for colon specifically?
 			} else {
@@ -280,9 +280,9 @@ func (t *Tree) parseAttributes() {
 		case itemNewline:
 			switch key {
 			case "Photo":
-				t.Recipe.Photo = value				
+				t.Recipe.Photo = value
 			default:
-				if key!="" {
+				if key != "" {
 					t.Recipe.Attributes[key] = value
 				}
 			}
@@ -290,7 +290,7 @@ func (t *Tree) parseAttributes() {
 			value = ""
 			//t.Recipe.
 		case itemEOF:
-			return		
+			return
 		case itemError:
 			t.errorf("lex: %s in attribute", token.val)
 		default:

@@ -25,7 +25,7 @@ const (
 )
 
 var parseTests = []parseTest{
-//	{"empty", "", noError, `[]`},
+	//	{"empty", "", noError, `[]`},
 	{"basic", "Red Lentils with Lemon\n\nQuick, easy, and delicious.\n\n3 tablespoons olive oil, plus more for drizzling\n1 large onion, chopped\n2 cloves garlic, minced\n1 tablespoon tomato paste\n1 teaspoon ground cumin\n1 teaspoon kosher salt, or more to taste\n1 teaspoon freshly ground black pepper\nlarge pinch of cayenne pepper, or more to taste\n4 cups chicken or vegetable broth\n2 cups water\n1 cup red lentils, picked over and rinsed\n1 large carrot, peeled and diced\njuice of 1 lemon, or more to taste\n3 tablespoons cilantro, chopped\n\nHeat the oil in a large pot over high heat until hot and shimmering. Add the onion and garlic and sauté until golden, about 4 minutes. Stir in the tomato paste, cumin, salt, black pepper, and chile powder and sauté for 2 minutes. Add the broth, water, lentils, and carrot and bring to a simmer, then partially cover the pot and turn the heat to medium low. Simmer until the lentils are soft, about 30 minutes. Taste and add salt if necessary.\n\nUsing an immersion or regular blender or a food processor, puree half the soup, then return it to the pot; do not over puree it, the soup should be somewhat chunky. Reheat the soup if necessary, then stir in the lemon juice and cilantro. Serve drizzled with olive oil and dusted lightly with chile powder if desired.\n\n", noError,
 		`[]`},
 	// {"comment", "{{/*\n\n\n*/}}", noError,
@@ -124,4 +124,3 @@ func TestRecipeParse(t *testing.T) {
 		}
 	}
 }
-

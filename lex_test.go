@@ -16,8 +16,8 @@ type lexTest struct {
 }
 
 var (
-	tEOF      = item{itemEOF, ""}
-	tQuote    = item{itemString, `"abc \n\t\" "`}
+	tEOF   = item{itemEOF, ""}
+	tQuote = item{itemString, `"abc \n\t\" "`}
 )
 
 var lexTests = []lexTest{
