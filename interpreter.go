@@ -1,7 +1,7 @@
 package hu
 
 type Interpreter struct {
-	environment                                          *Environment
+	environment                               *Environment
 	quote_symbol, lambda_symbol, begin_symbol Object
 }
 

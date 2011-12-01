@@ -148,17 +148,13 @@ func (o *CompoundProcedureObject) String() string {
 
 var (
 	TRUE, FALSE, eof_object Object
-	symbol_table                            Object
+	symbol_table            Object
 )
 
 func init() {
-	var testing *Object
-	fmt.Println(testing)
 	TRUE = &BooleanObject{true}
 	FALSE = &BooleanObject{false}
 	eof_object = &EOFObject{}
-
-	symbol_table = nil
 }
 
 func is_pair(obj Object) bool {
@@ -233,17 +229,8 @@ func is_last(seq Object) bool {
 }
 
 func list_from(list Object, selector func(Object) Object) (result Object) {
-	var previous Object
-	for list != nil {
-		element := selector(car(list))
-		foo := cons(element, nil)
-		if previous != nil {
-			set_cdr(previous, foo)
-		} else {
-			result = foo
-		}
-		previous = foo
-		list = cdr(list)
+	if list != nil {
+		result = &PairObject{selector(car(list)), list_from(cdr(list), selector)}
 	}
 	return
 }

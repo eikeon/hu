@@ -1,7 +1,5 @@
 package hu
 
-import ()
-
 func (interpreter *Interpreter) quote(object Object, environment *Environment) Object {
 	text_of_quotation := car(object)
 	return text_of_quotation

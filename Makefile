@@ -2,6 +2,13 @@ include $(GOROOT)/src/Make.inc
 
 TARG=hu
 GOFILES=\
+	objects.go\
+	read.go\
+	environment.go\
+	interpreter.go\
+	primitives.go\
+	macros.go\
+	bindings.go\
 	lex.go\
 	recipe.go\
 	recipes.go\

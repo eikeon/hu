@@ -24,7 +24,6 @@ func init() {
 		if err2 == nil {
 			var recipe = tmpl.Recipe
 			Recipes[recipe.Id()] = recipe
-			log.Println("Parsed:", recipe.Name)
 		} else {
 			//log.Print(tmpl.lex)
 			//log.Print("line:", line + tmpl.lex.lineNumber())

@@ -1,6 +1,8 @@
 package hu
 
-import ("fmt")
+import (
+	"fmt"
+)
 
 type Environment struct {
 	frame  map[Object]Object
