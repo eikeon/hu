@@ -15,8 +15,6 @@ func main() {
 	flag.Parse()
 	filename := *filenameFlag
 
-	fmt.Println("???", filename)
-
 	var reader io.RuneScanner
 	if filename == "-" {
 		reader = bufio.NewReader(os.Stdin)

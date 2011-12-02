@@ -182,7 +182,8 @@ func (t *Tree) parse(toEOF bool) { //(next Node) {
 	t.expect(itemNewline, "ingredients-directions-separator")
 	for {
 		r.Directions = append(r.Directions, t.parseDirection())
-		if t.next().typ != itemNewline || t.peek().typ == itemEOF {
+		next := t.next().typ
+		if next != itemNewline || next == itemEOF {
 			break
 		}
 	}
@@ -271,7 +272,9 @@ func (t *Tree) parseAttributes() {
 		case itemWord:
 			if key == "" {
 				key = token.val
-				t.expect(itemPunctuation, "attribute-key") // item for colon specifically?
+				if key !="" {
+					t.expect(itemPunctuation, "attribute-key") // item for colon specifically?
+				}
 			} else {
 				value += token.val
 			}

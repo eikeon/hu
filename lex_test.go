@@ -21,7 +21,7 @@ var (
 )
 
 var lexTests = []lexTest{
-	{"empty", "", []item{{itemError, "unexpected EOF"}}},
+	{"empty", "", []item{tEOF}},
 	{"words", "Red lentil soup",
 		[]item{
 			{itemWord, "Red"}, {itemPunctuation, " "},
@@ -33,9 +33,15 @@ var lexTests = []lexTest{
 			{itemNumber, "1"}, {itemPunctuation, " "},
 			{itemWord, "onion"},
 			tEOF}},
+	{"colon", "Photo: apple",
+		[]item{
+			{itemWord, "Photo"}, {itemPunctuation, ":"}, {itemPunctuation, " "},
+			{itemWord, "apple"},
+			tEOF}},
 	{"punctuation", "onion, chopped",
 		[]item{
-			{itemWord, "onion"}, {itemPunctuation, ", "}, {itemWord, "chopped"},
+			{itemWord, "onion"}, {itemPunctuation, ","}, {itemPunctuation, " "},
+			{itemWord, "chopped"},
 			tEOF}},
 }
 

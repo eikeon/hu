@@ -172,20 +172,19 @@ func lexItem(l *lexer) stateFn {
 	case r == eof:
 		l.emit(itemEOF)
 		return nil
-		//return l.errorf("unexpected EOF")
 	case r == '"':
 		return lexQuote
 	case r == '+' || r == '-' || ('0' <= r && r <= '9'):
 		l.backup()
 		return lexNumber
-	//case isAlphaNumeric(r):
-	case isPunctuation(r) == false:
+	case isPunctuation(r):
+		l.backup()
+		return lexPunctuation
+	default:
 		l.backup()
 		return lexWord
-	default:
-		return l.errorf("unrecognized character in Item: %#U", r)
 	}
-	return nil //lexItem
+	return nil
 }
 
 // lexWord scans an alphanumeric
@@ -193,53 +192,28 @@ func lexWord(l *lexer) stateFn {
 Loop:
 	for {
 		switch r := l.next(); {
-		case r == eof:
-			l.emit(itemEOF)
-			return nil
-		//case isAlphaNumeric(r):
-		//	// absorb.
 		case isPunctuation(r):
 			l.backup()
-			//word := l.input[l.start:l.pos]
-			switch {
-			default:
-				l.emit(itemWord)
-			}
+			l.emit(itemWord)
 			break Loop
 		default:
 			//
 		}
 
 	}
-	return lexPunctuation
+	return lexItem
 }
 
 func lexPunctuation(l *lexer) stateFn {
 	switch {
 	case l.accept("\n"):
 		l.emit(itemNewline)
-		return lexPunctuation
-	case l.accept(" ,:;.!"):
+	case l.accept(" ,:;.!\f"):
 		l.emit(itemPunctuation)
-		return lexPunctuation
 	default:
-		//l.backup()
-		return lexItem
+		//
 	}
-	return lexPunctuation
-	// switch r := l.next(); {
-	// case r == eof:
-	// 	l.emit(itemEOF)
-	// 	return nil
-	// default:
-	// 	l.backup()
-	// }
-
-	// if !l.scanPunctuation() {
-	// 	return l.errorf("bad punctuation: %q", l.input[l.start:l.pos])
-	// }
-	// l.emit(itemPunctuation)
-	// return lexItem
+	return lexItem
 }
 
 func (l *lexer) scanPunctuation() bool {
@@ -311,7 +285,7 @@ Loop:
 // isPunctuation reports whether r is a punctuation character.
 func isPunctuation(r int) bool {
 	switch r {
-	case ' ', '\t', '\n', '\r', ',', ':':
+	case ' ', '\t', '\n', '\r', '\f', ',', ':', eof:
 		return true
 	}
 	return false

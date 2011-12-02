@@ -1,4 +1,4 @@
-package hu
+package main
 
 import (
 	"os"
@@ -24,6 +24,8 @@ func init() {
 		if err2 == nil {
 			var recipe = tmpl.Recipe
 			Recipes[recipe.Id()] = recipe
+			//log.Println("Parsed:", recipe.Name)
+			//log.Println("  attributes:", recipe.Attributes)
 		} else {
 			//log.Print(tmpl.lex)
 			//log.Print("line:", line + tmpl.lex.lineNumber())
