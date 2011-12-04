@@ -162,7 +162,7 @@ func (interpreter *Interpreter) Read(in io.RuneScanner) Object {
 	} else if rune == '(' {
 		return interpreter.read_pair(in)
 	} else if rune == '\'' {
-		return cons(interpreter.quote_symbol, cons(interpreter.Read(in), nil))
+		return interpreter.quote(cons(interpreter.Read(in), nil), nil)
 	} else if rune == 0 || rune == 10 {
 		return nil
 	} else {
