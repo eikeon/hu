@@ -2,26 +2,31 @@ package hu
 
 type Interpreter struct {
 	environment                               *Environment
-	quote_symbol, lambda_symbol, begin_symbol Object
 }
 
 func NewInterpreter() *Interpreter {
-	interpreter := &Interpreter{}
-	interpreter.environment = NewEnvironment()
-
-	interpreter.quote_symbol = Symbol("quote")
-	interpreter.lambda_symbol = Symbol("lambda")
-	interpreter.begin_symbol = Symbol("begin")
-
-	return interpreter
+	return &Interpreter{NewEnvironment()}
 }
 
-func (interpreter *Interpreter) AddPrimative(name string, function PrimativeProcedure) {
-	interpreter.environment.Define(Symbol(name), &PrimativeProcedureObject{function})
+func (interpreter *Interpreter) AddPrimitive(name string, function PrimitiveFunction) {
+	interpreter.environment.Define(Symbol(name), &PrimitiveFunctionObject{function})
 }
 
-func (interpreter *Interpreter) AddMacro(name string, macro Macro) {
-	interpreter.environment.Define(Symbol(name), &MacroObject{macro})
+func (interpreter *Interpreter) AddPrimitiveProcedure(name string, function PrimitiveFunction) {
+	procedure := func(interpreter *Interpreter, object Object, environment *Environment) Object {
+		return function(interpreter, interpreter.evalList(object, environment), environment)
+	}
+	interpreter.environment.Define(Symbol(name), &PrimitiveFunctionObject{procedure})
+}
+
+// TODO: refactor to take function and parameters as one argument of type Object
+func (interpreter *Interpreter) AddClosure(function, parameters Object, outer *Environment) Object {
+	f := func(interpreter *Interpreter, object Object, environment *Environment) Object {
+		operands := interpreter.evalList(object, environment)
+		environment = outer.Extend(parameters, operands)
+		return interpreter.begin(function, environment)
+	}
+	return &PrimitiveFunctionObject{f}
 }
 
 func (interpreter *Interpreter) Evaluate(object Object) Object {
@@ -34,23 +39,10 @@ tailcall:
 	case *SymbolObject:
 		return environment.Get(o)
 	case *PairObject:
+		operands := o.cdr
 		switch operator := interpreter.evaluate(o.car, environment).(type) {
-		case *PrimativeProcedureObject:
-			operands := o.cdr
-			eval := func(operand Object) Object { return interpreter.evaluate(operand, environment) }
-			arguments := list_from(operands, eval)
-			object = operator.function(arguments)
-			return object
-		case *MacroObject:
-			operands := o.cdr
-			object = operator.expand(interpreter, operands, environment)
-			return object
-		case *CompoundProcedureObject:
-			operands := o.cdr
-			eval := func(operand Object) Object { return interpreter.evaluate(operand, environment) }
-			arguments := list_from(operands, eval)
-			environment = operator.environment.Extend(operator.parameters, arguments)
-			object = &PairObject{interpreter.begin_symbol, operator.body}
+		case *PrimitiveFunctionObject:
+			object = operator.function(interpreter, operands, environment)
 			goto tailcall
 		}
 	}

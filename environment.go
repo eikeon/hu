@@ -16,8 +16,14 @@ func (environment *Environment) String() string {
 func make_frame(variables, values Object) map[Object]Object {
 	frame := make(map[Object]Object)
 	for ; variables != nil && values != nil; variables, values = cdr(variables), cdr(values) {
-		variable, value := car(variables), car(values)
-		frame[variable] = value
+		if is_pair(variables) {
+			variable, value := car(variables), car(values)
+			frame[variable] = value
+		} else {
+			// TODO: needs a test case
+			frame[variables] = values
+			break
+		}
 	}
 	return frame
 }

@@ -5,6 +5,11 @@ func (interpreter *Interpreter) quote(object Object, environment *Environment) O
 	return text_of_quotation
 }
 
+func (interpreter *Interpreter) evalList(list Object, environment *Environment) Object {
+	eval := func(object Object) Object { return interpreter.evaluate(object, environment) }
+	return list_from(list, eval)
+}
+
 func (interpreter *Interpreter) define(object Object, environment *Environment) Object {
 	var variable, value Object
 
@@ -15,7 +20,7 @@ func (interpreter *Interpreter) define(object Object, environment *Environment) 
 		variable = car(car(object))
 		parameters := cdr(car(object))
 		body := cdr(object)
-		value = &CompoundProcedureObject{parameters, body, environment}
+		value = interpreter.AddClosure(body, parameters, environment)
 	}
 
 	environment.Define(variable, interpreter.evaluate(value, environment))
@@ -33,7 +38,7 @@ func (interpreter *Interpreter) set(object Object, environment *Environment) Obj
 func (interpreter *Interpreter) lambda(object Object, environment *Environment) Object {
 	parameters := car(object)
 	body := cdr(object)
-	return &CompoundProcedureObject{parameters, body, environment}
+	return interpreter.AddClosure(body, parameters, environment)
 }
 
 func (interpreter *Interpreter) begin(object Object, environment *Environment) Object {
@@ -71,7 +76,7 @@ func (interpreter *Interpreter) or(object Object, environment *Environment) Obje
 	return result
 }
 
-func (interpreter *Interpreter) ifMacro(object Object, environment *Environment) Object {
+func (interpreter *Interpreter) ifPrimitive(object Object, environment *Environment) Object {
 	if_predicate := car(object)
 	if is_true(interpreter.evaluate(if_predicate, environment)) {
 		if_consequent := car(cdr(object))
@@ -89,13 +94,14 @@ func (interpreter *Interpreter) ifMacro(object Object, environment *Environment)
 }
 
 func (interpreter *Interpreter) apply(object Object, environment *Environment) Object {
-	procedure := car(object)
-	arguments := car(cdr(car(cdr(object))))
+	// TODO: turn into primitive procedure instead of evaluating here?
+	procedure := interpreter.evaluate(car(object), environment)
+	arguments := interpreter.evaluate(cdr(object), environment)
 	expression := cons(procedure, arguments)
 	return interpreter.evaluate(expression, environment)
 }
 
-func (interpreter *Interpreter) evalMacro(object Object, environment *Environment) Object {
+func (interpreter *Interpreter) evalPrimitive(object Object, environment *Environment) Object {
 	expression := car(object)
 	environment = car(cdr(object)).(*Environment)
 	return interpreter.evaluate(expression, environment)
@@ -111,7 +117,7 @@ func (interpreter *Interpreter) let(object Object, environment *Environment) Obj
 	binding_arguments := func(binding Object) Object { return car(cdr(binding)) }
 	arguments := list_from(bindings, binding_arguments)
 
-	operator := &CompoundProcedureObject{parameters, body, environment}
+	operator := interpreter.AddClosure(body, parameters, environment)
 	operands := arguments
 	application := cons(operator, operands)
 	return interpreter.evaluate(application, environment)

@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func is_null_proc(arguments Object) (result Object) {
+func (interpreter *Interpreter) is_null_proc(arguments Object, environment *Environment) (result Object) {
 	if car(arguments) == nil {
 		result = TRUE
 	} else {
@@ -15,8 +15,8 @@ func is_null_proc(arguments Object) (result Object) {
 	return
 }
 
-func is_type_proc_tor(predicate func(Object) bool) func(Object) Object {
-	return func(arguments Object) (result Object) {
+func is_type_proc_tor(predicate func(Object) bool) func(*Interpreter, Object, *Environment) Object {
+	return func(interpreter *Interpreter, arguments Object, environment *Environment) (result Object) {
 		if predicate(car(arguments)) {
 			result = TRUE
 		} else {
@@ -26,7 +26,7 @@ func is_type_proc_tor(predicate func(Object) bool) func(Object) Object {
 	}
 }
 
-func add_proc(arguments Object) Object {
+func (interpreter *Interpreter) add_proc(arguments Object, environment *Environment) Object {
 	var result int64 = 0
 
 	for arguments != nil {
@@ -36,7 +36,7 @@ func add_proc(arguments Object) Object {
 	return &NumberObject{result}
 }
 
-func subtract_proc(arguments Object) Object {
+func (interpreter *Interpreter) subtract_proc(arguments Object, environment *Environment) Object {
 	// TODO: implement uniary negation
 	result := car(arguments).(*NumberObject).value
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
@@ -46,7 +46,7 @@ func subtract_proc(arguments Object) Object {
 	return &NumberObject{result}
 }
 
-func multiply_proc(arguments Object) Object {
+func (interpreter *Interpreter) multiply_proc(arguments Object, environment *Environment) Object {
 	var result int64 = 1
 
 	for arguments != nil {
@@ -56,7 +56,7 @@ func multiply_proc(arguments Object) Object {
 	return &NumberObject{result}
 }
 
-func is_number_equal_proc(arguments Object) Object {
+func (interpreter *Interpreter) is_number_equal_proc(arguments Object, environment *Environment) Object {
 	value := car(arguments).(*NumberObject).value
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
 		if value != car(arguments).(*NumberObject).value {
@@ -66,7 +66,7 @@ func is_number_equal_proc(arguments Object) Object {
 	return TRUE
 }
 
-func is_less_than_proc(arguments Object) Object {
+func (interpreter *Interpreter) is_less_than_proc(arguments Object, environment *Environment) Object {
 	var previous, next int64
 
 	previous = car(arguments).(*NumberObject).value
@@ -81,7 +81,7 @@ func is_less_than_proc(arguments Object) Object {
 	return TRUE
 }
 
-func is_greater_than_proc(arguments Object) Object {
+func (interpreter *Interpreter) is_greater_than_proc(arguments Object, environment *Environment) Object {
 	var previous, next int64
 
 	previous = car(arguments).(*NumberObject).value
@@ -96,33 +96,33 @@ func is_greater_than_proc(arguments Object) Object {
 	return TRUE
 }
 
-func cons_proc(arguments Object) Object {
+func (interpreter *Interpreter) cons_proc(arguments Object, environment *Environment) Object {
 	return cons(car(arguments), car(cdr(arguments)))
 }
 
-func car_proc(arguments Object) Object {
+func (interpreter *Interpreter) car_proc(arguments Object, environment *Environment) Object {
 	return car(car(arguments))
 }
 
-func cdr_proc(arguments Object) Object {
+func (interpreter *Interpreter) cdr_proc(arguments Object, environment *Environment) Object {
 	return cdr(car(arguments))
 }
 
-func set_car_proc(arguments Object) Object {
+func (interpreter *Interpreter) set_car_proc(arguments Object, environment *Environment) Object {
 	set_car(car(arguments), car(cdr(arguments)))
 	return nil
 }
 
-func set_cdr_proc(arguments Object) Object {
+func (interpreter *Interpreter) set_cdr_proc(arguments Object, environment *Environment) Object {
 	set_cdr(car(arguments), car(cdr(arguments)))
 	return nil
 }
 
-func list_proc(arguments Object) Object {
+func (interpreter *Interpreter) list_proc(arguments Object, environment *Environment) Object {
 	return arguments
 }
 
-func is_eq_proc(arguments Object) (result Object) {
+func (interpreter *Interpreter) is_eq_proc(arguments Object, environment *Environment) (result Object) {
 	obj1 := car(arguments)
 	obj2 := car(cdr(arguments))
 
@@ -156,7 +156,7 @@ func is_eq_proc(arguments Object) (result Object) {
 	return
 }
 
-func write_char_proc(arguments Object) Object {
+func (interpreter *Interpreter) write_char_proc(arguments Object, environment *Environment) Object {
 	out := os.Stdout
 	character := car(arguments)
 	arguments = cdr(arguments)
@@ -167,7 +167,7 @@ func write_char_proc(arguments Object) Object {
 	return nil
 }
 
-func write_proc(arguments Object) Object {
+func (interpreter *Interpreter) write_proc(arguments Object, environment *Environment) Object {
 	out := os.Stdout
 	exp := car(arguments)
 	arguments = cdr(arguments)
@@ -178,7 +178,7 @@ func write_proc(arguments Object) Object {
 	return nil
 }
 
-func (interpreter *Interpreter) read_proc(arguments Object) (result Object) {
+func (interpreter *Interpreter) read_proc(arguments Object, environment *Environment) (result Object) {
 	in := bufio.NewReader(os.Stdin)
 	if arguments != nil {
 		panic("TODO")
@@ -190,7 +190,7 @@ func (interpreter *Interpreter) read_proc(arguments Object) (result Object) {
 	return
 }
 
-func error_proc(arguments Object) Object {
+func (interpreter *Interpreter) error_proc(arguments Object, environment *Environment) Object {
 	out := os.Stderr
 	for ; arguments != nil; arguments = cdr(arguments) {
 		fmt.Fprintf(out, "%s", car(arguments))

@@ -117,33 +117,14 @@ func (o *EOFObject) String() string {
 	return "#<eof>"
 }
 
-type PrimativeProcedure func(Object) Object
+type PrimitiveFunction func(*Interpreter, Object, *Environment) Object
 
-type PrimativeProcedureObject struct {
-	function PrimativeProcedure
+type PrimitiveFunctionObject struct {
+	function PrimitiveFunction
 }
 
-func (o *PrimativeProcedureObject) String() string {
-	return "#<primitive-procedure>"
-}
-
-type Macro func(*Interpreter, Object, *Environment) Object
-
-type MacroObject struct {
-	expand Macro
-}
-
-func (o *MacroObject) String() string {
-	return "#<macro>"
-}
-
-type CompoundProcedureObject struct {
-	parameters, body Object
-	environment      *Environment
-}
-
-func (o *CompoundProcedureObject) String() string {
-	return "#<compound-procedure>"
+func (o *PrimitiveFunctionObject) String() string {
+	return fmt.Sprintf("#<primitive-function> %v", o.function)
 }
 
 var (
