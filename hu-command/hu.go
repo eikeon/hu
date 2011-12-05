@@ -31,7 +31,7 @@ func main() {
 	interpreter.AddDefaultBindings()
 
 	for {
-		fmt.Printf("hu>")
+		fmt.Printf("hu> ")
 		expression := interpreter.Read(reader)
 		if expression != nil {
 			result := interpreter.Evaluate(expression)
@@ -44,4 +44,3 @@ func main() {
 		}
 	}
 }
-

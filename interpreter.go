@@ -1,7 +1,7 @@
 package hu
 
 type Interpreter struct {
-	environment                               *Environment
+	environment *Environment
 }
 
 func NewInterpreter() *Interpreter {

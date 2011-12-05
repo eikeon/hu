@@ -272,7 +272,7 @@ func (t *Tree) parseAttributes() {
 		case itemWord:
 			if key == "" {
 				key = token.val
-				if key !="" {
+				if key != "" {
 					t.expect(itemPunctuation, "attribute-key") // item for colon specifically?
 				}
 			} else {
