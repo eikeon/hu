@@ -61,5 +61,5 @@ func (environment *Environment) Get(variable Object) Object {
 	} else if environment.parent != nil {
 		return environment.parent.Get(variable)
 	}
-	panic(fmt.Sprintf("unbound variable '%s'\n", variable))
+	return nil
 }
