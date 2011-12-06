@@ -9,7 +9,6 @@ import (
 	"strings"
 	"fmt"
 	"time"
-	"hu"
 )
 
 
@@ -45,7 +44,7 @@ func PageHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func RecipesHandler(w http.ResponseWriter, req *http.Request) {
-	var r = hu.Recipes[path.Base(req.URL.Path)]
+	var r = Recipes[path.Base(req.URL.Path)]
 	if r != nil {
 		var p = strings.Replace(req.URL.Path, "recipes", "recipe", -1)
 		w.Header().Set("Location", p)
@@ -59,13 +58,13 @@ func RecipesHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	setCacheControl(w, req)
 	page := newPage("Recipes")
-	page.Recipes = hu.Recipe_list
+	page.Recipes = Recipe_list
 	page.Write(w, req)
 
 }
 
 func RecipeHandler(w http.ResponseWriter, req *http.Request) {
-	var r = hu.Recipes[path.Base(req.URL.Path)]
+	var r = Recipes[path.Base(req.URL.Path)]
 	if r == nil {
 		NotFoundHandler(w, req)
 		return

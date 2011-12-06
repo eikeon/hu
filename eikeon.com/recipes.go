@@ -5,9 +5,10 @@ import (
 	"log"
 	"bufio"
 	"sort"
+	"hu"
 )
 
-var Recipes = map[string]*Recipe{}
+var Recipes = map[string]*hu.Recipe{}
 var Recipe_list RecipeArray
 
 func init() {
@@ -20,7 +21,7 @@ func init() {
 	for {
 		input, err := reader.ReadString('\f')
 
-		tmpl, err2 := New("").Parse(input)
+		tmpl, err2 := hu.New("").Parse(input)
 		if err2 == nil {
 			var recipe = tmpl.Recipe
 			Recipes[recipe.Id()] = recipe
@@ -48,7 +49,7 @@ func init() {
 	sort.Sort(Recipe_list)
 }
 
-type RecipeArray []*Recipe
+type RecipeArray []*hu.Recipe
 
 func (p RecipeArray) Len() int           { return len(p) }
 func (p RecipeArray) Less(i, j int) bool { return p[i].Name < p[j].Name }
