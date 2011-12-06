@@ -1,8 +1,7 @@
 package hu
 
 func (interpreter *Interpreter) quote(object Object, environment *Environment) Object {
-	text_of_quotation := car(object)
-	return text_of_quotation
+	return object
 }
 
 func (interpreter *Interpreter) evalList(list Object, environment *Environment) Object {

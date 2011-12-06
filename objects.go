@@ -129,12 +129,14 @@ func (o *PrimitiveFunctionObject) String() string {
 
 var (
 	TRUE, FALSE, eof_object Object
+	quote_symbol            Object
 	symbol_table            Object
 )
 
 func init() {
 	TRUE = &BooleanObject{true}
 	FALSE = &BooleanObject{false}
+	quote_symbol = Symbol("quote")
 	eof_object = &EOFObject{}
 }
 
