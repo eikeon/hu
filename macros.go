@@ -22,7 +22,7 @@ func (interpreter *Interpreter) define(object Object, environment *Environment) 
 		value = interpreter.AddClosure(body, parameters, environment)
 	}
 
-	environment.Define(variable, interpreter.evaluate(value, environment))
+	environment.Define(variable, value)
 	return nil
 }
 
