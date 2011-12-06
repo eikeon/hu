@@ -9,6 +9,7 @@ import (
 func is_delimiter(rune int) bool {
 	return unicode.IsSpace(rune) || rune == 0 ||
 		rune == '(' || rune == ')' ||
+		rune == '{' || rune == '}' ||
 		rune == '"' || rune == ';'
 }
 
@@ -159,11 +160,16 @@ func (interpreter *Interpreter) Read(in io.RuneScanner) Object {
 			buffer = append(buffer, rune)
 		}
 		return &StringObject{string(buffer)}
+	} else if rune == '{' {
+		return interpreter.read_evaluate(in)
 	} else if rune == '(' {
 		return interpreter.read_pair(in)
 	} else if rune == '\'' {
 		return cons(quote_symbol, interpreter.Read(in))
 	} else if rune == 0 || rune == 10 {
+		return nil
+	} else if rune == '}' {
+		ungetc(in)
 		return nil
 	} else {
 		panic(fmt.Sprintf("unexpected input: %v", rune))
@@ -179,6 +185,9 @@ func (interpreter *Interpreter) read_pair(in io.RuneScanner) Object {
 
 	rune := getc(in)
 	if rune == ')' {
+		return nil
+	} else if rune == '}' {
+		ungetc(in)
 		return nil
 	}
 	ungetc(in)
@@ -204,4 +213,24 @@ func (interpreter *Interpreter) read_pair(in io.RuneScanner) Object {
 		cdr_object = interpreter.read_pair(in)
 	}
 	return cons(car_object, cdr_object)
+}
+
+func (interpreter *Interpreter) read_evaluate(in io.RuneScanner) Object {
+	for {
+		operator := interpreter.Read(in)
+		operands := interpreter.Read(in)
+
+		ignoreWhitespace(in)
+		rune := getc(in)
+		if rune == '}' {
+			if operands == nil {
+				return interpreter.Evaluate(operator)
+			}
+			return interpreter.Evaluate(cons(operator, operands))
+		} else if rune == 0 {
+			panic("end of file before expected }\n")
+		}
+		ungetc(in)
+	}
+	panic("")
 }
