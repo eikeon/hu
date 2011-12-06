@@ -4,6 +4,7 @@ func (interpreter *Interpreter) AddDefaultBindings() {
 	interpreter.AddPrimitive("add", (*Interpreter).add_proc)
 
 	interpreter.AddPrimitive("quote", (*Interpreter).quote)
+	interpreter.AddPrimitive("unquote", (*Interpreter).unquote)
 	interpreter.AddPrimitive("define", (*Interpreter).define)
 	interpreter.AddPrimitive("set!", (*Interpreter).set)
 	interpreter.AddPrimitive("lambda", (*Interpreter).lambda)

@@ -1,7 +1,12 @@
 package hu
 
 func (interpreter *Interpreter) quote(object Object, environment *Environment) Object {
-	return object
+	return cons(quote_symbol, object)
+}
+
+func (interpreter *Interpreter) unquote(object Object, environment *Environment) Object {
+	// TODO check that car is quote
+	return cdr(object)
 }
 
 func (interpreter *Interpreter) evalList(list Object, environment *Environment) Object {
