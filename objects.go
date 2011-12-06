@@ -97,13 +97,21 @@ func (pair *PairObject) String() string {
 
 	car_obj := car(pair)
 	cdr_obj := cdr(pair)
-	fmt.Fprintf(&out, "%v", car_obj)
+	if car_obj == nil {
+		fmt.Fprintf(&out, "Ø")
+	} else {
+		fmt.Fprintf(&out, "%v", car_obj)
+	}
 	if is_pair(cdr_obj) {
 		fmt.Fprintf(&out, " %s", cdr_obj)
 	} else if cdr_obj == nil {
 
 	} else {
-		fmt.Fprintf(&out, " . %s", cdr_obj)
+		if cdr_obj == nil {
+			fmt.Fprintf(&out, " . Ø", cdr_obj)
+		} else {
+			fmt.Fprintf(&out, " . %s", cdr_obj)
+		}
 	}
 	out.WriteRune(')')
 	return out.String()
