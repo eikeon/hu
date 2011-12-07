@@ -56,6 +56,13 @@ func TestInterpreter(t *testing.T) {
 			}
 			return false
 		}},
+		{"let test", "{let ((x 2)) {+ x x}}", func(result Object) bool {
+			if is_number(result) && result.(*NumberObject).value == 4 {
+				return true
+			}
+			return false
+		}},
+
 	}
 	for _, test := range tests {
 		fmt.Println("Running: ", test.name)

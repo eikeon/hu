@@ -127,6 +127,6 @@ func (interpreter *Interpreter) let(object Object, environment *Environment) Obj
 
 	operator := interpreter.lambda(cons(parameters, body), environment)
 	operands := arguments
-	application := cons(operator, operands)
-	return interpreter.evaluate(application, environment)
+
+	return &ExpressionObject{operator, operands}
 }
