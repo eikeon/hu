@@ -98,11 +98,9 @@ func (interpreter *Interpreter) ifPrimitive(object Object, environment *Environm
 }
 
 func (interpreter *Interpreter) apply(object Object, environment *Environment) Object {
-	// TODO: turn into primitive procedure instead of evaluating here?
-	procedure := interpreter.evaluate(car(object), environment)
-	arguments := interpreter.evaluate(cdr(object), environment)
-	expression := cons(procedure, arguments)
-	return interpreter.evaluate(expression, environment)
+	operator := car(object)
+	operands := cdr(object)
+	return &ExpressionObject{operator, operands}
 }
 
 func (interpreter *Interpreter) evalPrimitive(object Object, environment *Environment) Object {

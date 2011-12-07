@@ -39,10 +39,11 @@ tailcall:
 	case *SymbolObject:
 		return environment.Get(o)
 	case *PairObject:
-		operands := o.cdr
-		switch operator := interpreter.evaluate(o.car, environment).(type) {
+		return cons(interpreter.evaluate(o.car, environment), interpreter.evaluate(o.cdr, environment))
+	case *ExpressionObject:
+		switch operator := interpreter.evaluate(o.operator, environment).(type) {
 		case *PrimitiveFunctionObject:
-			object = operator.function(interpreter, operands, environment)
+			object = operator.function(interpreter, o.operands, environment)
 			goto tailcall
 		}
 	}

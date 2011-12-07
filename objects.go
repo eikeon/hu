@@ -117,6 +117,37 @@ func (pair *PairObject) String() string {
 	return out.String()
 }
 
+type ExpressionObject struct {
+	operator Object
+	operands Object
+}
+
+func (expression *ExpressionObject) String() string {
+	var out bytes.Buffer
+	out.WriteRune('{')
+
+	car_obj := expression.operator
+	cdr_obj := expression.operands
+	if car_obj == nil {
+		fmt.Fprintf(&out, "Ø")
+	} else {
+		fmt.Fprintf(&out, "%v", car_obj)
+	}
+	if is_pair(cdr_obj) {
+		fmt.Fprintf(&out, " %s", cdr_obj)
+	} else if cdr_obj == nil {
+
+	} else {
+		if cdr_obj == nil {
+			fmt.Fprintf(&out, " . Ø", cdr_obj)
+		} else {
+			fmt.Fprintf(&out, " . %s", cdr_obj)
+		}
+	}
+	out.WriteRune('}')
+	return out.String()
+}
+
 type EOFObject struct {
 
 }

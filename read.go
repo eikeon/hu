@@ -217,16 +217,11 @@ func (interpreter *Interpreter) read_pair(in io.RuneScanner) Object {
 
 func (interpreter *Interpreter) read_evaluate(in io.RuneScanner) Object {
 	for {
-		operator := interpreter.Read(in)
-		operands := interpreter.Read(in)
-
+		expression := interpreter.read_pair(in)
 		ignoreWhitespace(in)
 		rune := getc(in)
 		if rune == '}' {
-			if operands == nil {
-				return interpreter.Evaluate(operator)
-			}
-			return interpreter.Evaluate(cons(operator, operands))
+			return &ExpressionObject{car(expression), cdr(expression)}
 		} else if rune == 0 {
 			panic("end of file before expected }\n")
 		}

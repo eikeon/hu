@@ -32,9 +32,15 @@ func main() {
 
 	for {
 		fmt.Printf("hu> ")
-		result := interpreter.Read(reader)
-		if result != nil {
-			fmt.Fprintf(os.Stdout, "%v\n", result)
+		expression := interpreter.Read(reader)
+		if expression != nil {
+			result := interpreter.Evaluate(expression)
+			if result != nil {
+				fmt.Fprintf(os.Stdout, "%v\n", result)
+			}
+		} else {
+			fmt.Fprintf(os.Stdout, "Goodbye!\n")
+			break
 		}
 	}
 }
