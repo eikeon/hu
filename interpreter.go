@@ -19,16 +19,6 @@ func (interpreter *Interpreter) AddPrimitiveProcedure(name string, function Prim
 	interpreter.environment.Define(Symbol(name), &PrimitiveFunctionObject{procedure})
 }
 
-// TODO: refactor to take function and parameters as one argument of type Object
-func (interpreter *Interpreter) AddClosure(function, parameters Object, outer *Environment) Object {
-	f := func(interpreter *Interpreter, object Object, environment *Environment) Object {
-		operands := interpreter.evalList(object, environment)
-		environment = outer.Extend(parameters, operands)
-		return interpreter.begin(function, environment)
-	}
-	return &PrimitiveFunctionObject{f}
-}
-
 func (interpreter *Interpreter) Evaluate(object Object) Object {
 	return interpreter.evaluate(object, interpreter.environment)
 }

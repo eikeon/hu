@@ -24,7 +24,7 @@ func (interpreter *Interpreter) define(object Object, environment *Environment) 
 		variable = car(car(object))
 		parameters := cdr(car(object))
 		body := cdr(object)
-		value = interpreter.AddClosure(body, parameters, environment)
+		value = interpreter.lambda(cons(parameters, body), environment)
 	}
 
 	environment.Define(variable, value)
@@ -39,10 +39,16 @@ func (interpreter *Interpreter) set(object Object, environment *Environment) Obj
 	return nil
 }
 
-func (interpreter *Interpreter) lambda(object Object, environment *Environment) Object {
+func (interpreter *Interpreter) lambda(object Object, outer *Environment) Object {
 	parameters := car(object)
-	body := cdr(object)
-	return interpreter.AddClosure(body, parameters, environment)
+	function := cdr(object)
+	f := func(interpreter *Interpreter, object Object, environment *Environment) Object {
+		operands := interpreter.evalList(object, environment)
+		environment = outer.Extend(parameters, operands)
+		function := interpreter.evalList(function, environment)
+		return interpreter.begin(function, environment)
+	}
+	return &PrimitiveFunctionObject{f}
 }
 
 func (interpreter *Interpreter) begin(object Object, environment *Environment) Object {
@@ -119,7 +125,7 @@ func (interpreter *Interpreter) let(object Object, environment *Environment) Obj
 	binding_arguments := func(binding Object) Object { return car(cdr(binding)) }
 	arguments := list_from(bindings, binding_arguments)
 
-	operator := interpreter.AddClosure(body, parameters, environment)
+	operator := interpreter.lambda(cons(parameters, body), environment)
 	operands := arguments
 	application := cons(operator, operands)
 	return interpreter.evaluate(application, environment)
