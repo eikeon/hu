@@ -19,7 +19,7 @@ func (interpreter *Interpreter) define(object Object, environment *Environment) 
 
 	if is_symbol(car(object)) {
 		variable = car(object)
-		value = car(cdr(object))
+		value = interpreter.evaluate(car(cdr(object)), environment)
 	} else {
 		variable = car(car(object))
 		parameters := cdr(car(object))
