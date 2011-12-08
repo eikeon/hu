@@ -3,6 +3,7 @@ package hu
 import (
 	"fmt"
 	"bytes"
+	"big"
 )
 
 type Object interface {
@@ -32,11 +33,11 @@ func (o *BooleanObject) String() string {
 }
 
 type NumberObject struct {
-	value int64
+	value *big.Int
 }
 
 func (o *NumberObject) String() string {
-	return fmt.Sprintf("%d", o.value)
+	return o.value.String()
 }
 
 type SymbolObject struct {

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"strings"
 	"fmt"
+	"big"
 )
 
 type testCase struct {
@@ -12,21 +13,17 @@ type testCase struct {
 	is_expected func(Object) bool
 }
 
-func foo(result Object) bool { return false }
+func is_eq_number(result Object, number int64) bool {
+	return is_number(result) && result.(*NumberObject).value.Cmp(big.NewInt(number)) == 0
+}
 
 func TestInterpreter(t *testing.T) {
 	var tests = []testCase{
 		{"primitive function test", "{add 1 2}", func(result Object) bool {
-			if is_number(result) && result.(*NumberObject).value == 3 {
-				return true
-			}
-			return false
+			return is_eq_number(result, 3)
 		}},
 		{"apply test", "{apply add 1 2}", func(result Object) bool {
-			if is_number(result) && result.(*NumberObject).value == 3 {
-				return true
-			}
-			return false
+			return is_eq_number(result, 3)
 		}},
 		{"begin test", "{begin {define foo 1} foo}", func(result Object) bool {
 			return is_number(result)
@@ -39,28 +36,22 @@ func TestInterpreter(t *testing.T) {
 			return true
 		}},
 		{"primitive procedure test", "{+ 1 2}", func(result Object) bool {
-			if is_number(result) && result.(*NumberObject).value == 3 {
-				return true
-			}
-			return false
+			return is_eq_number(result, 3)
 		}},
 		{"closure test", "{begin {define (double x) {+ x x}} {double 5}}}", func(result Object) bool {
-			if is_number(result) && result.(*NumberObject).value == 10 {
-				return true
-			}
-			return false
+			return is_eq_number(result, 10)
 		}},
 		{"closure test setup", "{begin {define (fib n) {if {< n 2} n {+ {fib {- n 1}} {fib {- n 2}}}}} {fib 15}}", func(result Object) bool {
-			if is_number(result) && result.(*NumberObject).value == 610 {
-				return true
-			}
-			return false
+			return is_eq_number(result, 610)
 		}},
 		{"let test", "{let ((x 2)) {+ x x}}", func(result Object) bool {
-			if is_number(result) && result.(*NumberObject).value == 4 {
-				return true
-			}
-			return false
+			return is_eq_number(result, 4)
+		}},
+		{"quotient test", "{quotient 10 3}", func(result Object) bool {
+			return is_eq_number(result, 3)
+		}},
+		{"remainder test", "{remainder 5 3}", func(result Object) bool {
+			return is_eq_number(result, 2)
 		}},
 
 	}

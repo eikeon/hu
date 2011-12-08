@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"unicode"
+	"big"
 )
 
 func is_delimiter(rune int) bool {
@@ -126,7 +127,7 @@ func (interpreter *Interpreter) Read(in io.RuneScanner) Object {
 		num *= sign
 		if is_delimiter(rune) {
 			ungetc(in)
-			return &NumberObject{num}
+			return &NumberObject{big.NewInt(num)}
 		} else {
 			panic("number not followed by delimiter\n")
 		}

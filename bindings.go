@@ -28,9 +28,8 @@ func (interpreter *Interpreter) AddDefaultBindings() {
 	interpreter.AddPrimitiveProcedure("+", (*Interpreter).add_proc)
 	interpreter.AddPrimitiveProcedure("-", (*Interpreter).subtract_proc)
 	interpreter.AddPrimitiveProcedure("*", (*Interpreter).multiply_proc)
-	// TODO:
-	// interpreter.AddPrimitiveProcedure("quotient" , quotient_proc)
-	// interpreter.AddPrimitiveProcedure("remainder", remainder_proc)
+	interpreter.AddPrimitiveProcedure("quotient" , (*Interpreter).quotient_proc)
+	interpreter.AddPrimitiveProcedure("remainder", (*Interpreter).remainder_proc)
 	interpreter.AddPrimitiveProcedure("=", (*Interpreter).is_number_equal_proc)
 	interpreter.AddPrimitiveProcedure("<", (*Interpreter).is_less_than_proc)
 	interpreter.AddPrimitiveProcedure(">", (*Interpreter).is_greater_than_proc)

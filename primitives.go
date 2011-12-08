@@ -4,6 +4,7 @@ import (
 	"os"
 	"bufio"
 	"fmt"
+	"big"
 )
 
 func (interpreter *Interpreter) is_null_proc(arguments Object, environment *Environment) (result Object) {
@@ -27,10 +28,10 @@ func is_type_proc_tor(predicate func(Object) bool) func(*Interpreter, Object, *E
 }
 
 func (interpreter *Interpreter) add_proc(arguments Object, environment *Environment) Object {
-	var result int64 = 0
+	var result = big.NewInt(0)
 
 	for arguments != nil {
-		result += car(arguments).(*NumberObject).value
+		result.Add(result, car(arguments).(*NumberObject).value)
 		arguments = cdr(arguments)
 	}
 	return &NumberObject{result}
@@ -38,28 +39,37 @@ func (interpreter *Interpreter) add_proc(arguments Object, environment *Environm
 
 func (interpreter *Interpreter) subtract_proc(arguments Object, environment *Environment) Object {
 	// TODO: implement uniary negation
-	result := car(arguments).(*NumberObject).value
+	result := big.NewInt(0).Set(car(arguments).(*NumberObject).value)
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
-		result -= car(arguments).(*NumberObject).value
-
+		result.Sub(result, car(arguments).(*NumberObject).value)
 	}
 	return &NumberObject{result}
 }
 
 func (interpreter *Interpreter) multiply_proc(arguments Object, environment *Environment) Object {
-	var result int64 = 1
+	var result = big.NewInt(1)
 
 	for arguments != nil {
-		result *= car(arguments).(*NumberObject).value
+		result.Mul(result, car(arguments).(*NumberObject).value)
 		arguments = cdr(arguments)
 	}
+	return &NumberObject{result}
+}
+
+func (interpreter *Interpreter) quotient_proc(arguments Object, environment *Environment) Object {
+	result := big.NewInt(0).Quo(car(arguments).(*NumberObject).value, car(cdr(arguments)).(*NumberObject).value)
+	return &NumberObject{result}
+}
+
+func (interpreter *Interpreter) remainder_proc(arguments Object, environment *Environment) Object {
+	result := big.NewInt(0).Rem(car(arguments).(*NumberObject).value, car(cdr(arguments)).(*NumberObject).value)
 	return &NumberObject{result}
 }
 
 func (interpreter *Interpreter) is_number_equal_proc(arguments Object, environment *Environment) Object {
 	value := car(arguments).(*NumberObject).value
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
-		if value != car(arguments).(*NumberObject).value {
+		if value.Cmp(car(arguments).(*NumberObject).value)!=0 {
 			return FALSE
 		}
 	}
@@ -67,12 +77,10 @@ func (interpreter *Interpreter) is_number_equal_proc(arguments Object, environme
 }
 
 func (interpreter *Interpreter) is_less_than_proc(arguments Object, environment *Environment) Object {
-	var previous, next int64
-
-	previous = car(arguments).(*NumberObject).value
+	previous := car(arguments).(*NumberObject).value
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
-		next = car(arguments).(*NumberObject).value
-		if previous < next {
+		next := car(arguments).(*NumberObject).value
+		if previous.Cmp(next)==-1 {
 			previous = next
 		} else {
 			return FALSE
@@ -82,12 +90,10 @@ func (interpreter *Interpreter) is_less_than_proc(arguments Object, environment 
 }
 
 func (interpreter *Interpreter) is_greater_than_proc(arguments Object, environment *Environment) Object {
-	var previous, next int64
-
-	previous = car(arguments).(*NumberObject).value
+	previous := car(arguments).(*NumberObject).value
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
-		next = car(arguments).(*NumberObject).value
-		if previous > next {
+		next := car(arguments).(*NumberObject).value
+		if previous.Cmp(next)==1 {
 			previous = next
 		} else {
 			return FALSE
@@ -130,7 +136,7 @@ func (interpreter *Interpreter) is_eq_proc(arguments Object, environment *Enviro
 	switch t1 := obj1.(type) {
 	case *NumberObject:
 		t2, ok := obj2.(*NumberObject)
-		if ok && t1.value == t2.value {
+		if ok && t1.value.Cmp(t2.value) == 0 {
 			result = TRUE
 		}
 		break
