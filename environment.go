@@ -60,6 +60,8 @@ func (environment *Environment) Get(variable Object) Object {
 		return value
 	} else if environment.parent != nil {
 		return environment.parent.Get(variable)
+	} else {
+		fmt.Printf("unbound variable '%s'\n", variable)
 	}
 	return nil
 }
