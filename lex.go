@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
-	"utf8"
+	"io"
+	"bytes"
 )
 
 // item represents a token or text string returned from the scanner.
@@ -69,23 +70,27 @@ type stateFn func(*lexer) stateFn
 // lexer holds the state of the scanner.
 type lexer struct {
 	name  string    // the name of the input; used only for error reports.
-	input string    // the string being scanned.
+	input io.RuneScanner    // the string being scanned.
+	current bytes.Buffer
 	state stateFn   // the next lexing function to enter
-	pos   int       // current position in the input.
-	start int       // start position of this item.
 	width int       // width of last rune read from input.
 	items chan item // channel of scanned items.
 }
 
 // next returns the next rune in the input.
 func (l *lexer) next() (rune int) {
-	if l.pos >= len(l.input) {
+	rune, size, err := l.input.ReadRune()
+	if err == nil {
+		l.width, _ = l.current.WriteRune(rune)
+		if size != l.width {
+			fmt.Println("size: ", size, "width: ", l.width)
+		}
+		return rune
+	} else {
 		l.width = 0
 		return eof
 	}
-	rune, l.width = utf8.DecodeRuneInString(l.input[l.pos:])
-	l.pos += l.width
-	return rune
+	panic("")
 }
 
 // peek returns but does not consume the next rune in the input.
@@ -97,18 +102,20 @@ func (l *lexer) peek() int {
 
 // backup steps back one rune. Can only be called once per call of next.
 func (l *lexer) backup() {
-	l.pos -= l.width
+	if l.width > 0 {
+		err := l.input.UnreadRune()
+		if err != nil {
+			fmt.Println("err: ", err)
+		}
+		l.current.Truncate(l.current.Len() - l.width)
+	}
 }
 
 // emit passes an item back to the client.
 func (l *lexer) emit(t itemType) {
-	l.items <- item{t, l.input[l.start:l.pos]}
-	l.start = l.pos
-}
-
-// ignore skips over the pending input before this point.
-func (l *lexer) ignore() {
-	l.start = l.pos
+	l.items <- item{t, l.current.String()}
+	l.current.Reset()
+	l.width = 0
 }
 
 // accept consumes the next rune if it's from the valid set.
@@ -125,12 +132,6 @@ func (l *lexer) acceptRun(valid string) {
 	for strings.IndexRune(valid, l.next()) >= 0 {
 	}
 	l.backup()
-}
-
-// lineNumber reports which line we're on. Doing it this way
-// means we don't have to worry about peek double counting.
-func (l *lexer) lineNumber() int {
-	return 1 + strings.Count(l.input[:l.pos], "\n")
 }
 
 // error returns an error token and terminates the scan by passing
@@ -154,7 +155,7 @@ func (l *lexer) nextItem() item {
 }
 
 // lex creates a new scanner for the input string.
-func lex(name, input string) *lexer {
+func lex(name string, input io.RuneScanner) *lexer {
 	l := &lexer{
 		name:  name,
 		input: input,
@@ -227,7 +228,7 @@ func (l *lexer) scanPunctuation() bool {
 // strconv) will notice.
 func lexNumber(l *lexer) stateFn {
 	if !l.scanNumber() {
-		return l.errorf("bad number syntax: %q", l.input[l.start:l.pos])
+		return l.errorf("bad number syntax: %q", l.current.String())
 	}
 	l.emit(itemNumber)
 	return lexPunctuation

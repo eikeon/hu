@@ -7,6 +7,7 @@ package hu
 import (
 	"reflect"
 	"testing"
+	"strings"
 )
 
 type lexTest struct {
@@ -47,7 +48,7 @@ var lexTests = []lexTest{
 
 // collect gathers the emitted items into a slice.
 func collect(t *lexTest) (items []item) {
-	l := lex(t.name, t.input)
+	l := lex(t.name, strings.NewReader(t.input))
 	for {
 		item := l.nextItem()
 		items = append(items, item)

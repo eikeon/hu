@@ -100,7 +100,8 @@ func New(name string, funcs ...map[string]interface{}) *Tree {
 // errorf formats the error and terminates processing.
 func (t *Tree) errorf(format string, args ...interface{}) {
 	t.Recipe = nil
-	format = fmt.Sprintf("template: %s:%d: %s", t.Name, t.lex.lineNumber(), format)
+	//format = fmt.Sprintf("template: %s:%d: %s", t.Name, t.lex.lineNumber(), format)
+	format = fmt.Sprintf("template: %s: %s", t.Name, format)
 	panic(fmt.Errorf(format, args...))
 }
 
@@ -157,7 +158,7 @@ func (t *Tree) stopParse() {
 // representation of the template for execution.
 func (t *Tree) Parse(s string, funcs ...map[string]interface{}) (tree *Tree, err os.Error) {
 	defer t.recover(&err)
-	t.startParse(funcs, lex(t.Name, s))
+	t.startParse(funcs, lex(t.Name, strings.NewReader(s)))
 	t.parse(true)
 	t.stopParse()
 	return t, nil
