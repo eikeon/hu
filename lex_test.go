@@ -25,23 +25,23 @@ var lexTests = []lexTest{
 	{"empty", "", []item{tEOF}},
 	{"words", "Red lentil soup",
 		[]item{
-			{itemWord, "Red"}, {itemPunctuation, " "},
-			{itemWord, "lentil"}, {itemPunctuation, " "},
+			{itemWord, "Red"}, {itemSpace, " "},
+			{itemWord, "lentil"}, {itemSpace, " "},
 			{itemWord, "soup"},
 			tEOF}},
 	{"number and word", "1 onion",
 		[]item{
-			{itemNumber, "1"}, {itemPunctuation, " "},
+			{itemNumber, "1"}, {itemSpace, " "},
 			{itemWord, "onion"},
 			tEOF}},
 	{"colon", "Photo: apple",
 		[]item{
-			{itemWord, "Photo"}, {itemPunctuation, ":"}, {itemPunctuation, " "},
+			{itemWord, "Photo"}, {itemPunctuation, ":"}, {itemSpace, " "},
 			{itemWord, "apple"},
 			tEOF}},
 	{"punctuation", "onion, chopped",
 		[]item{
-			{itemWord, "onion"}, {itemPunctuation, ","}, {itemPunctuation, " "},
+			{itemWord, "onion"}, {itemPunctuation, ","}, {itemSpace, " "},
 			{itemWord, "chopped"},
 			tEOF}},
 }

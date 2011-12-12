@@ -53,7 +53,6 @@ func TestInterpreter(t *testing.T) {
 		{"remainder test", "{remainder 5 3}", func(result Object) bool {
 			return is_eq_number(result, 2)
 		}},
-
 	}
 	for _, test := range tests {
 		fmt.Println("Running: ", test.name)

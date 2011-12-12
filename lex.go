@@ -41,17 +41,31 @@ const (
 	itemNumber      // simple number, including imaginary
 	itemPunctuation //
 	itemString      // quoted string (includes quotes)
+	itemOpenParenthesis
+	itemCloseParenthesis
+	itemOpenCurlyBrace
+	itemCloseCurlyBrace
+	itemQuote
+	itemSpace
+	itemPeriod
 )
 
 // Make the types prettyprint.
 var itemName = map[itemType]string{
-	itemError:       "error",
-	itemEOF:         "EOF",
-	itemNewline:     "newline",
-	itemWord:        "word",
-	itemPunctuation: "punctuation",
-	itemNumber:      "number",
-	itemString:      "string",
+	itemError:            "error",
+	itemEOF:              "EOF",
+	itemNewline:          "newline",
+	itemWord:             "word",
+	itemPunctuation:      "punctuation",
+	itemNumber:           "number",
+	itemString:           "string",
+	itemOpenParenthesis:  "(",
+	itemCloseParenthesis: ")",
+	itemOpenCurlyBrace:   "{",
+	itemCloseCurlyBrace:  "}",
+	itemQuote:            "'",
+	itemSpace:            "space",
+	itemPeriod:           "period",
 }
 
 func (i itemType) String() string {
@@ -69,12 +83,14 @@ type stateFn func(*lexer) stateFn
 
 // lexer holds the state of the scanner.
 type lexer struct {
-	name  string    // the name of the input; used only for error reports.
-	input io.RuneScanner    // the string being scanned.
-	current bytes.Buffer
-	state stateFn   // the next lexing function to enter
-	width int       // width of last rune read from input.
-	items chan item // channel of scanned items.
+	name      string         // the name of the input; used only for error reports.
+	input     io.RuneScanner // the string being scanned.
+	current   bytes.Buffer
+	state     stateFn   // the next lexing function to enter
+	width     int       // width of last rune read from input.
+	items     chan item // channel of scanned items.
+	token     [2]item   // two-token lookahead for parser.
+	peekCount int
 }
 
 // next returns the next rune in the input.
@@ -142,7 +158,7 @@ func (l *lexer) errorf(format string, args ...interface{}) stateFn {
 }
 
 // nextItem returns the next item from the input.
-func (l *lexer) nextItem() item {
+func (l *lexer) nextItemFromInput() item {
 	for {
 		select {
 		case item := <-l.items:
@@ -152,6 +168,32 @@ func (l *lexer) nextItem() item {
 		}
 	}
 	panic("not reached")
+}
+
+// next returns the next item taking into account peek
+func (l *lexer) nextItem() item {
+	if l.peekCount > 0 {
+		l.peekCount--
+	} else {
+		l.token[0] = l.nextItemFromInput()
+	}
+	return l.token[l.peekCount]
+}
+
+// backup backs the input stream up one token.
+func (l *lexer) backupItem() {
+	l.peekCount++
+}
+
+// peek returns but does not consume the next token.
+func (l *lexer) peekItem() item {
+	if l.peekCount > 0 {
+		return l.token[l.peekCount-1]
+	}
+	l.peekCount = 1
+	l.token[0] = l.nextItemFromInput()
+
+	return l.token[0]
 }
 
 // lex creates a new scanner for the input string.
@@ -175,6 +217,15 @@ func lexItem(l *lexer) stateFn {
 		return nil
 	case r == '"':
 		return lexQuote
+	case r == '+' || r == '-':
+		rr := l.peek()
+		if isPunctuation(rr) {
+			l.emit(itemWord)
+			return lexItem
+		} else if '0' <= rr && rr <= '9' {
+			return lexNumber
+		} else {
+		}
 	case r == '+' || r == '-' || ('0' <= r && r <= '9'):
 		l.backup()
 		return lexNumber
@@ -206,20 +257,29 @@ Loop:
 }
 
 func lexPunctuation(l *lexer) stateFn {
-	switch {
-	case l.accept("\n"):
+	switch l.next() {
+	case '\n':
 		l.emit(itemNewline)
-	case l.accept(" ,:;.!\f"):
+	case '(':
+		l.emit(itemOpenParenthesis)
+	case ')':
+		l.emit(itemCloseParenthesis)
+	case '{':
+		l.emit(itemOpenCurlyBrace)
+	case '}':
+		l.emit(itemCloseCurlyBrace)
+	case '\'':
+		l.emit(itemQuote)
+	case ' ':
+		l.emit(itemSpace)
+	case '.':
+		l.emit(itemPeriod)
+	case ',', ':', ';', '!', '\f':
 		l.emit(itemPunctuation)
 	default:
-		//
+		panic("???")
 	}
 	return lexItem
-}
-
-func (l *lexer) scanPunctuation() bool {
-	l.acceptRun(" ,;.!\n")
-	return true
 }
 
 // lexNumber scans a number: decimal, octal, hex, float, or imaginary.  This
@@ -286,7 +346,9 @@ Loop:
 // isPunctuation reports whether r is a punctuation character.
 func isPunctuation(r int) bool {
 	switch r {
-	case ' ', '\t', '\n', '\r', '\f', ',', ':', eof:
+	case ' ', '\t', '\n', '\r', '\f', '(', ')', '{', '}', '\'', eof:
+		return true
+	case '.', '!', ',', ':':
 		return true
 	}
 	return false

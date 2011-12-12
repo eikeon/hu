@@ -69,7 +69,7 @@ func (interpreter *Interpreter) remainder_proc(arguments Object, environment *En
 func (interpreter *Interpreter) is_number_equal_proc(arguments Object, environment *Environment) Object {
 	value := car(arguments).(*NumberObject).value
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
-		if value.Cmp(car(arguments).(*NumberObject).value)!=0 {
+		if value.Cmp(car(arguments).(*NumberObject).value) != 0 {
 			return FALSE
 		}
 	}
@@ -80,7 +80,7 @@ func (interpreter *Interpreter) is_less_than_proc(arguments Object, environment 
 	previous := car(arguments).(*NumberObject).value
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
 		next := car(arguments).(*NumberObject).value
-		if previous.Cmp(next)==-1 {
+		if previous.Cmp(next) == -1 {
 			previous = next
 		} else {
 			return FALSE
@@ -93,7 +93,7 @@ func (interpreter *Interpreter) is_greater_than_proc(arguments Object, environme
 	previous := car(arguments).(*NumberObject).value
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
 		next := car(arguments).(*NumberObject).value
-		if previous.Cmp(next)==1 {
+		if previous.Cmp(next) == 1 {
 			previous = next
 		} else {
 			return FALSE

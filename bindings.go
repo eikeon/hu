@@ -1,6 +1,11 @@
 package hu
 
 func (interpreter *Interpreter) AddDefaultBindings() {
+	interpreter.environment.Define(Symbol("#t"), TRUE)
+	interpreter.environment.Define(Symbol("#f"), FALSE)
+	interpreter.environment.Define(Symbol("#\\space"), &RuneObject{' '})
+	interpreter.environment.Define(Symbol("#\\newline"), &RuneObject{'\n'})
+
 	interpreter.AddPrimitive("add", (*Interpreter).add_proc)
 
 	interpreter.AddPrimitive("quote", (*Interpreter).quote)
@@ -28,7 +33,7 @@ func (interpreter *Interpreter) AddDefaultBindings() {
 	interpreter.AddPrimitiveProcedure("+", (*Interpreter).add_proc)
 	interpreter.AddPrimitiveProcedure("-", (*Interpreter).subtract_proc)
 	interpreter.AddPrimitiveProcedure("*", (*Interpreter).multiply_proc)
-	interpreter.AddPrimitiveProcedure("quotient" , (*Interpreter).quotient_proc)
+	interpreter.AddPrimitiveProcedure("quotient", (*Interpreter).quotient_proc)
 	interpreter.AddPrimitiveProcedure("remainder", (*Interpreter).remainder_proc)
 	interpreter.AddPrimitiveProcedure("=", (*Interpreter).is_number_equal_proc)
 	interpreter.AddPrimitiveProcedure("<", (*Interpreter).is_less_than_proc)
