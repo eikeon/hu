@@ -14,7 +14,7 @@ func (interpreter *Interpreter) AddPrimitive(name string, function PrimitiveFunc
 
 func (interpreter *Interpreter) AddPrimitiveProcedure(name string, function PrimitiveFunction) {
 	procedure := func(interpreter *Interpreter, object Object, environment *Environment) Object {
-		return function(interpreter, interpreter.evalList(object, environment), environment)
+		return function(interpreter, interpreter.evaluate(object, environment), environment)
 	}
 	interpreter.environment.Define(Symbol(name), &PrimitiveFunctionObject{procedure})
 }

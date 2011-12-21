@@ -9,11 +9,6 @@ func (interpreter *Interpreter) unquote(object Object, environment *Environment)
 	return cdr(object)
 }
 
-func (interpreter *Interpreter) evalList(list Object, environment *Environment) Object {
-	eval := func(object Object) Object { return interpreter.evaluate(object, environment) }
-	return list_from(list, eval)
-}
-
 func (interpreter *Interpreter) define(object Object, environment *Environment) Object {
 	var variable, value Object
 
@@ -43,9 +38,8 @@ func (interpreter *Interpreter) lambda(object Object, outer *Environment) Object
 	parameters := car(object)
 	function := cdr(object)
 	f := func(interpreter *Interpreter, object Object, environment *Environment) Object {
-		operands := interpreter.evalList(object, environment)
+		operands := interpreter.evaluate(object, environment)
 		environment = outer.Extend(parameters, operands)
-		function := interpreter.evalList(function, environment)
 		return interpreter.begin(function, environment)
 	}
 	return &PrimitiveFunctionObject{f}
