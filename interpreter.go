@@ -35,6 +35,11 @@ tailcall:
 		case *PrimitiveFunctionObject:
 			object = operator.function(interpreter, o.operands, environment)
 			goto tailcall
+		case *Abstraction:
+			operands := interpreter.evaluate(o.operands, environment)
+			environment = operator.environment.Extend(operator.parameters, operands)
+			object = interpreter.begin(operator.function, environment)
+			goto tailcall
 		}
 	}
 	return object

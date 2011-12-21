@@ -34,15 +34,10 @@ func (interpreter *Interpreter) set(object Object, environment *Environment) Obj
 	return nil
 }
 
-func (interpreter *Interpreter) lambda(object Object, outer *Environment) Object {
+func (interpreter *Interpreter) lambda(object Object, environment *Environment) Object {
 	parameters := car(object)
 	function := cdr(object)
-	f := func(interpreter *Interpreter, object Object, environment *Environment) Object {
-		operands := interpreter.evaluate(object, environment)
-		environment = outer.Extend(parameters, operands)
-		return interpreter.begin(function, environment)
-	}
-	return &PrimitiveFunctionObject{f}
+	return &Abstraction{parameters, function, environment}
 }
 
 func (interpreter *Interpreter) begin(object Object, environment *Environment) Object {

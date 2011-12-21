@@ -149,6 +149,16 @@ func (expression *Application) String() string {
 	return out.String()
 }
 
+type Abstraction struct {
+	parameters Object
+	function Object
+	environment *Environment
+}
+
+func (expression *Abstraction) String() string {
+	return fmt.Sprintf("#<abstraction> %v %v", expression.parameters, expression.function)
+}
+
 type EOFObject struct {
 
 }
