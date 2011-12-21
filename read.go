@@ -36,7 +36,7 @@ func (interpreter *Interpreter) read(lexer *lexer) Object {
 			if next.typ != itemCloseCurlyBrace {
 				panic("expected }")
 			}
-			return &ExpressionObject{car(expression), cdr(expression)}
+			return &Application{car(expression), cdr(expression)}
 		case itemCloseCurlyBrace:
 		case itemQuote:
 			return cons(quote_symbol, interpreter.read(lexer))

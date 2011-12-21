@@ -100,7 +100,7 @@ func (interpreter *Interpreter) ifPrimitive(object Object, environment *Environm
 func (interpreter *Interpreter) apply(object Object, environment *Environment) Object {
 	operator := car(object)
 	operands := cdr(object)
-	return &ExpressionObject{operator, operands}
+	return &Application{operator, operands}
 }
 
 func (interpreter *Interpreter) evalPrimitive(object Object, environment *Environment) Object {
@@ -122,5 +122,5 @@ func (interpreter *Interpreter) let(object Object, environment *Environment) Obj
 	operator := interpreter.lambda(cons(parameters, body), environment)
 	operands := arguments
 
-	return &ExpressionObject{operator, operands}
+	return &Application{operator, operands}
 }

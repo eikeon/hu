@@ -118,12 +118,12 @@ func (pair *PairObject) String() string {
 	return out.String()
 }
 
-type ExpressionObject struct {
+type Application struct {
 	operator Object
 	operands Object
 }
 
-func (expression *ExpressionObject) String() string {
+func (expression *Application) String() string {
 	var out bytes.Buffer
 	out.WriteRune('{')
 

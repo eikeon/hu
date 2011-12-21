@@ -30,7 +30,7 @@ tailcall:
 		return environment.Get(o)
 	case *PairObject:
 		return cons(interpreter.evaluate(o.car, environment), interpreter.evaluate(o.cdr, environment))
-	case *ExpressionObject:
+	case *Application:
 		switch operator := interpreter.evaluate(o.operator, environment).(type) {
 		case *PrimitiveFunctionObject:
 			object = operator.function(interpreter, o.operands, environment)
