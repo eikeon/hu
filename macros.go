@@ -36,8 +36,8 @@ func (interpreter *Interpreter) set(object Object, environment *Environment) Obj
 
 func (interpreter *Interpreter) lambda(object Object, environment *Environment) Object {
 	parameters := car(object)
-	function := cdr(object)
-	return &Abstraction{parameters, function, environment}
+	body := cdr(object)
+	return &Abstraction{parameters, body, environment}
 }
 
 func (interpreter *Interpreter) begin(object Object, environment *Environment) Object {
