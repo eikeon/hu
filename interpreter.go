@@ -38,7 +38,7 @@ tailcall:
 		case *Abstraction:
 			operands := interpreter.evaluate(o.operands, environment)
 			environment = operator.environment.Extend(operator.parameters, operands)
-			object = interpreter.begin(operator.body, environment)
+			object = operator.object
 			goto tailcall
 		}
 	}

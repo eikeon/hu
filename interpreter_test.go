@@ -38,13 +38,13 @@ func TestInterpreter(t *testing.T) {
 		{"primitive procedure test", "{+ 1 2}", func(result Object) bool {
 			return is_eq_number(result, 3)
 		}},
-		{"closure test", "{begin {define (double x) {+ x x}} {double 5}}}", func(result Object) bool {
+		{"closure test", "{begin {define (double x) . {+ x x}} {double 5}}}", func(result Object) bool {
 			return is_eq_number(result, 10)
 		}},
-		{"closure test setup", "{begin {define (fib n) {if {< n 2} n {+ {fib {- n 1}} {fib {- n 2}}}}} {fib 15}}", func(result Object) bool {
+		{"closure test setup", "{begin {define (fib n) . {if {< n 2} n {+ {fib {- n 1}} {fib {- n 2}}}}} {fib 15}}", func(result Object) bool {
 			return is_eq_number(result, 610)
 		}},
-		{"let test", "{let ((x 2)) {+ x x}}", func(result Object) bool {
+		{"let test", "{let ((x 2)) . {+ x x}}", func(result Object) bool {
 			return is_eq_number(result, 4)
 		}},
 		{"quotient test", "{quotient 10 3}", func(result Object) bool {

@@ -151,12 +151,12 @@ func (expression *Application) String() string {
 
 type Abstraction struct {
 	parameters Object
-	body Object
+	object Object
 	environment *Environment
 }
 
 func (expression *Abstraction) String() string {
-	return fmt.Sprintf("#<abstraction> %v %v", expression.parameters, expression.body)
+	return fmt.Sprintf("#<abstraction> %v %v", expression.parameters, expression.object)
 }
 
 type EOFObject struct {
