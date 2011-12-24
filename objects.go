@@ -44,24 +44,17 @@ func (o *SymbolObject) String() string {
 	return o.value
 }
 
-type StringObject struct {
-	value string
+func Symbol(value string) Object {
+	symbol, ok := symbol_table[value]
+	if !ok {
+		symbol = &SymbolObject{value}
+		symbol_table[value] = symbol
+	}
+	return symbol
 }
 
-func Symbol(value string) Object {
-	var element Object
-
-	element = symbol_table
-	for element != nil {
-		if car(element).(*SymbolObject).value == value {
-			return car(element)
-		}
-		element = cdr(element)
-	}
-
-	obj := &SymbolObject{value}
-	symbol_table = cons(obj, symbol_table)
-	return obj
+type StringObject struct {
+	value string
 }
 
 func (o *StringObject) String() string {
@@ -177,12 +170,13 @@ var (
 	TRUE, FALSE             BooleanObject
 	eof_object              Object
 	quote_symbol            Object
-	symbol_table            Object
+	symbol_table            map[string]*SymbolObject
 )
 
 func init() {
 	TRUE = true
 	FALSE = false
+	symbol_table = make(map[string]*SymbolObject)
 	quote_symbol = Symbol("quote")
 	eof_object = &EOFObject{}
 }
