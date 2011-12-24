@@ -140,9 +140,9 @@ func (interpreter *Interpreter) is_eq_proc(arguments Object, environment *Enviro
 			result = TRUE
 		}
 		break
-	case *RuneObject:
-		t2, ok := obj2.(*RuneObject)
-		if ok && t1.rune == t2.rune {
+	case RuneObject:
+		t2, ok := obj2.(RuneObject)
+		if ok && t1 == t2 {
 			result = TRUE
 		}
 		break

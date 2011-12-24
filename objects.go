@@ -10,12 +10,10 @@ type Object interface {
 	String() string
 }
 
-type RuneObject struct {
-	rune int
-}
+type RuneObject int
 
-func (o *RuneObject) String() string {
-	return string(o.rune)
+func (rune RuneObject) String() string {
+	return string(rune)
 }
 
 type BooleanObject bool
@@ -215,7 +213,7 @@ func is_string(obj Object) bool {
 }
 
 func is_character(obj Object) bool {
-	_, ok := obj.(*RuneObject)
+	_, ok := obj.(RuneObject)
 	return ok
 }
 
