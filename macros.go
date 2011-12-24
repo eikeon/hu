@@ -50,29 +50,27 @@ func (interpreter *Interpreter) begin(object Object, environment *Environment) O
 }
 
 func (interpreter *Interpreter) and(object Object, environment *Environment) Object {
-	result := TRUE
 	tests := object
 	for exp := tests; exp != nil; exp = cdr(exp) {
 		first_exp := car(exp)
-		result = interpreter.evaluate(first_exp, environment)
+		result := interpreter.evaluate(first_exp, environment)
 		if is_false(result) {
 			return result
 		}
 	}
-	return result
+	return TRUE
 }
 
 func (interpreter *Interpreter) or(object Object, environment *Environment) Object {
-	result := FALSE
 	tests := object
 	for exp := tests; exp != nil; exp = cdr(exp) {
 		first_exp := car(exp)
-		result = interpreter.evaluate(first_exp, environment)
+		result := interpreter.evaluate(first_exp, environment)
 		if is_true(result) {
 			return result
 		}
 	}
-	return result
+	return FALSE
 }
 
 func (interpreter *Interpreter) ifPrimitive(object Object, environment *Environment) Object {

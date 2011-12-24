@@ -18,13 +18,11 @@ func (o *RuneObject) String() string {
 	return string(o.rune)
 }
 
-type BooleanObject struct {
-	value bool
-}
+type BooleanObject bool
 
-func (o *BooleanObject) String() string {
+func (o BooleanObject) String() string {
 	var v byte
-	if o.value {
+	if o {
 		v = 't'
 	} else {
 		v = 'f'
@@ -178,14 +176,15 @@ func (o *PrimitiveFunctionObject) String() string {
 }
 
 var (
-	TRUE, FALSE, eof_object Object
+	TRUE, FALSE             BooleanObject
+	eof_object              Object
 	quote_symbol            Object
 	symbol_table            Object
 )
 
 func init() {
-	TRUE = &BooleanObject{true}
-	FALSE = &BooleanObject{false}
+	TRUE = true
+	FALSE = false
 	quote_symbol = Symbol("quote")
 	eof_object = &EOFObject{}
 }
