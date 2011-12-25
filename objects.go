@@ -167,15 +167,12 @@ func (o *PrimitiveFunctionObject) String() string {
 }
 
 var (
-	TRUE, FALSE             BooleanObject
 	eof_object              Object
 	quote_symbol            Object
 	symbol_table            map[string]*SymbolObject
 )
 
 func init() {
-	TRUE = true
-	FALSE = false
 	symbol_table = make(map[string]*SymbolObject)
 	quote_symbol = Symbol("quote")
 	eof_object = &EOFObject{}
@@ -187,7 +184,7 @@ func is_pair(obj Object) bool {
 }
 
 func is_boolean(obj Object) bool {
-	_, ok := obj.(*BooleanObject)
+	_, ok := obj.(BooleanObject)
 	return ok
 }
 
@@ -221,7 +218,8 @@ func is_the_empty_list(obj Object) bool {
 }
 
 func is_false(obj Object) bool {
-	return obj == FALSE
+	v, ok := obj.(BooleanObject)
+	return ok && v == false
 }
 
 func is_true(obj Object) bool {

@@ -1,8 +1,8 @@
 package hu
 
 func (interpreter *Interpreter) AddDefaultBindings() {
-	interpreter.environment.Define(Symbol("#t"), TRUE)
-	interpreter.environment.Define(Symbol("#f"), FALSE)
+	interpreter.environment.Define(Symbol("#t"), BooleanObject(true))
+	interpreter.environment.Define(Symbol("#f"), BooleanObject(false))
 	interpreter.environment.Define(Symbol("#\\space"), RuneObject(' '))
 	interpreter.environment.Define(Symbol("#\\newline"), RuneObject('\n'))
 

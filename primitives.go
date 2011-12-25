@@ -8,22 +8,12 @@ import (
 )
 
 func (interpreter *Interpreter) is_null_proc(arguments Object, environment *Environment) (result Object) {
-	if car(arguments) == nil {
-		result = TRUE
-	} else {
-		result = FALSE
-	}
-	return
+	return BooleanObject(car(arguments) == nil)
 }
 
 func is_type_proc_tor(predicate func(Object) bool) func(*Interpreter, Object, *Environment) Object {
 	return func(interpreter *Interpreter, arguments Object, environment *Environment) (result Object) {
-		if predicate(car(arguments)) {
-			result = TRUE
-		} else {
-			result = FALSE
-		}
-		return
+		return BooleanObject(predicate(car(arguments)))
 	}
 }
 
@@ -70,10 +60,10 @@ func (interpreter *Interpreter) is_number_equal_proc(arguments Object, environme
 	value := car(arguments).(*NumberObject).value
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
 		if value.Cmp(car(arguments).(*NumberObject).value) != 0 {
-			return FALSE
+			return BooleanObject(false)
 		}
 	}
-	return TRUE
+	return BooleanObject(true)
 }
 
 func (interpreter *Interpreter) is_less_than_proc(arguments Object, environment *Environment) Object {
@@ -83,10 +73,10 @@ func (interpreter *Interpreter) is_less_than_proc(arguments Object, environment 
 		if previous.Cmp(next) == -1 {
 			previous = next
 		} else {
-			return FALSE
+			return BooleanObject(false)
 		}
 	}
-	return TRUE
+	return BooleanObject(true)
 }
 
 func (interpreter *Interpreter) is_greater_than_proc(arguments Object, environment *Environment) Object {
@@ -96,10 +86,10 @@ func (interpreter *Interpreter) is_greater_than_proc(arguments Object, environme
 		if previous.Cmp(next) == 1 {
 			previous = next
 		} else {
-			return FALSE
+			return BooleanObject(false)
 		}
 	}
-	return TRUE
+	return BooleanObject(true)
 }
 
 func (interpreter *Interpreter) cons_proc(arguments Object, environment *Environment) Object {
@@ -136,28 +126,15 @@ func (interpreter *Interpreter) is_eq_proc(arguments Object, environment *Enviro
 	switch t1 := obj1.(type) {
 	case *NumberObject:
 		t2, ok := obj2.(*NumberObject)
-		if ok && t1.value.Cmp(t2.value) == 0 {
-			result = TRUE
-		}
-		break
+		return BooleanObject(ok && t1.value.Cmp(t2.value) == 0)
 	case RuneObject:
 		t2, ok := obj2.(RuneObject)
-		if ok && t1 == t2 {
-			result = TRUE
-		}
-		break
+		return BooleanObject(ok && t1 == t2)
 	case *StringObject:
 		t2, ok := obj2.(*StringObject)
-		if ok && t1.value == t2.value {
-			result = TRUE
-		}
-		break
+		return BooleanObject(ok && t1.value == t2.value)
 	default:
-		if obj1 == obj2 {
-			result = TRUE
-		} else {
-			result = FALSE
-		}
+		return BooleanObject(obj1 == obj2)
 	}
 	return
 }

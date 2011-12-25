@@ -58,7 +58,7 @@ func (interpreter *Interpreter) and(object Object, environment *Environment) Obj
 			return result
 		}
 	}
-	return TRUE
+	return BooleanObject(true)
 }
 
 func (interpreter *Interpreter) or(object Object, environment *Environment) Object {
@@ -70,7 +70,7 @@ func (interpreter *Interpreter) or(object Object, environment *Environment) Obje
 			return result
 		}
 	}
-	return FALSE
+	return BooleanObject(false)
 }
 
 func (interpreter *Interpreter) ifPrimitive(object Object, environment *Environment) Object {
@@ -81,7 +81,7 @@ func (interpreter *Interpreter) ifPrimitive(object Object, environment *Environm
 	} else {
 		var if_alternative Object
 		if is_the_empty_list(cdr(cdr(object))) {
-			if_alternative = FALSE
+			if_alternative = BooleanObject(false)
 		} else {
 			if_alternative = car(cdr(cdr(object)))
 		}
