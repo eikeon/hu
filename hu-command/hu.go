@@ -27,14 +27,14 @@ func main() {
 	}
 
 
-	interpreter := hu.NewInterpreter()
-	interpreter.AddDefaultBindings()
+	environment := hu.NewEnvironment()
+	hu.AddDefaultBindings(environment)
 
 	for {
 		fmt.Printf("hu> ")
-		expression := interpreter.Read(reader)
+		expression := hu.Read(reader)
 		if expression != nil {
-			result := interpreter.Evaluate(expression)
+			result := environment.Evaluate(expression)
 			if result != nil {
 				fmt.Fprintf(os.Stdout, "%v\n", result)
 			}

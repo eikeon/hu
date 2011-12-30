@@ -4,26 +4,36 @@ import (
 	"io"
 	"big"
 	"strings"
+	"fmt"
 )
 
-func (interpreter *Interpreter) Read(in io.RuneScanner) Object {
+func Read(in io.RuneScanner) (result Term) {
+	defer func() {
+		switch x := recover().(type) {
+		case Term:
+			result = x
+		case interface{}:
+      			result = Error(fmt.Sprintf("%v", x))
+		}
+	}()
 	lexer := lex("", in)
-	return interpreter.read(lexer)
+	result = read(lexer)
+	return
 }
 
-func (interpreter *Interpreter) read(lexer *lexer) Object {
+func read(lexer *lexer) Term {
 	for {
 		switch token := lexer.nextItem(); token.typ {
 		case itemWord:
 			return Symbol(token.val)
 		case itemString:
-			return &StringObject{strings.Trim(token.val, string("\""))}
+			return String(strings.Trim(token.val, string("\"")))
 		case itemNumber:
 			num := big.NewInt(0)
 			num.SetString(token.val, 10)
-			return &NumberObject{num}
+			return &Number{num}
 		case itemOpenParenthesis:
-			pair := interpreter.read_pair(lexer)
+			pair := read_pair(lexer)
 			next := lexer.nextItem()
 			if next.typ != itemCloseParenthesis {
 				panic("expected )")
@@ -31,15 +41,15 @@ func (interpreter *Interpreter) read(lexer *lexer) Object {
 			return pair
 		case itemCloseParenthesis:
 		case itemOpenCurlyBrace:
-			expression := interpreter.read_pair(lexer)
+			expression := read_pair(lexer)
 			next := lexer.nextItem()
 			if next.typ != itemCloseCurlyBrace {
 				panic("expected }")
 			}
-			return &Application{car(expression), cdr(expression)}
+			return Application{car(expression), cdr(expression)}
 		case itemCloseCurlyBrace:
 		case itemQuote:
-			return cons(quote_symbol, interpreter.read(lexer))
+			return cons(Symbol("quote"), read(lexer))
 		case itemEOF:
 			return nil
 		case itemPunctuation:
@@ -54,8 +64,8 @@ func (interpreter *Interpreter) read(lexer *lexer) Object {
 	panic("unexpectedly reached this point")
 }
 
-func (interpreter *Interpreter) read_pair(lexer *lexer) Object {
-	var car_object, cdr_object Object
+func read_pair(lexer *lexer) Term {
+	var car_term, cdr_term Term
 	for {
 		switch token := lexer.peekItem(); token.typ {
 		case itemCloseParenthesis, itemCloseCurlyBrace:
@@ -64,7 +74,7 @@ func (interpreter *Interpreter) read_pair(lexer *lexer) Object {
 			lexer.nextItem()
 			break
 		default:
-			car_object = interpreter.read(lexer)
+			car_term = read(lexer)
 			goto done_car
 		}
 	}
@@ -75,13 +85,13 @@ done_car:
 			lexer.nextItem()
 		case itemPeriod:
 			lexer.nextItem()
-			cdr_object = interpreter.read(lexer)
+			cdr_term = read(lexer)
 			goto done_cdr
 		default:
-			cdr_object = interpreter.read_pair(lexer)
+			cdr_term = read_pair(lexer)
 			goto done_cdr
 		}
 	}
 done_cdr:
-	return cons(car_object, cdr_object)
+	return cons(car_term, cdr_term)
 }

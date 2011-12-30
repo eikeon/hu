@@ -1,183 +1,196 @@
 package hu
 
-import (
-	"os"
-	"bufio"
-	"fmt"
-	"big"
-)
+import "big"
 
-func (interpreter *Interpreter) is_null_proc(arguments Object, environment *Environment) (result Object) {
-	return BooleanObject(car(arguments) == nil)
-}
-
-func is_type_proc_tor(predicate func(Object) bool) func(*Interpreter, Object, *Environment) Object {
-	return func(interpreter *Interpreter, arguments Object, environment *Environment) (result Object) {
-		return BooleanObject(predicate(car(arguments)))
-	}
-}
-
-func (interpreter *Interpreter) add_proc(arguments Object, environment *Environment) Object {
+func add_proc(environment *Environment, arguments Term) Term {
 	var result = big.NewInt(0)
-
 	for arguments != nil {
-		result.Add(result, car(arguments).(*NumberObject).value)
+		num := environment.evaluate(car(arguments)).(*Number)
+		result.Add(result, num.value)
 		arguments = cdr(arguments)
 	}
-	return &NumberObject{result}
+	return &Number{result}
 }
 
-func (interpreter *Interpreter) subtract_proc(arguments Object, environment *Environment) Object {
+func subtract_proc(environment *Environment, arguments Term) Term {
 	// TODO: implement uniary negation
-	result := big.NewInt(0).Set(car(arguments).(*NumberObject).value)
+	num := environment.evaluate(car(arguments)).(*Number)
+	result := big.NewInt(0).Set(num.value)
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
-		result.Sub(result, car(arguments).(*NumberObject).value)
+		num = environment.evaluate(car(arguments)).(*Number)
+		result.Sub(result, num.value)
 	}
-	return &NumberObject{result}
+	return &Number{result}
 }
 
-func (interpreter *Interpreter) multiply_proc(arguments Object, environment *Environment) Object {
+func multiply_proc(environment *Environment, arguments Term) Term {
 	var result = big.NewInt(1)
 
 	for arguments != nil {
-		result.Mul(result, car(arguments).(*NumberObject).value)
+		result.Mul(result, car(arguments).(*Number).value)
 		arguments = cdr(arguments)
 	}
-	return &NumberObject{result}
+	return &Number{result}
 }
 
-func (interpreter *Interpreter) quotient_proc(arguments Object, environment *Environment) Object {
-	result := big.NewInt(0).Quo(car(arguments).(*NumberObject).value, car(cdr(arguments)).(*NumberObject).value)
-	return &NumberObject{result}
+func quotient_proc(environment *Environment, arguments Term) Term {
+	a := environment.evaluate(car(arguments)).(*Number)
+	b := environment.evaluate(car(cdr(arguments))).(*Number)
+	result := big.NewInt(0).Quo(a.value, b.value)
+	return &Number{result}
 }
 
-func (interpreter *Interpreter) remainder_proc(arguments Object, environment *Environment) Object {
-	result := big.NewInt(0).Rem(car(arguments).(*NumberObject).value, car(cdr(arguments)).(*NumberObject).value)
-	return &NumberObject{result}
+func remainder_proc(environment *Environment, arguments Term) Term {
+	a := environment.evaluate(car(arguments)).(*Number)
+	b := environment.evaluate(car(cdr(arguments))).(*Number)
+	result := big.NewInt(0).Rem(a.value, b.value)
+	return &Number{result}
 }
 
-func (interpreter *Interpreter) is_number_equal_proc(arguments Object, environment *Environment) Object {
-	value := car(arguments).(*NumberObject).value
+func is_number_equal_proc(environment *Environment, arguments Term) Term {
+	value := car(arguments).(*Number).value
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
-		if value.Cmp(car(arguments).(*NumberObject).value) != 0 {
-			return BooleanObject(false)
+		num := environment.evaluate(car(arguments)).(*Number)
+		if value.Cmp(num.value) != 0 {
+			return Boolean(false)
 		}
 	}
-	return BooleanObject(true)
+	return Boolean(true)
 }
 
-func (interpreter *Interpreter) is_less_than_proc(arguments Object, environment *Environment) Object {
-	previous := car(arguments).(*NumberObject).value
+func is_less_than_proc(environment *Environment, arguments Term) Term {
+	num := environment.evaluate(car(arguments))
+	previous := num.(*Number).value
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
-		next := car(arguments).(*NumberObject).value
+		num = environment.evaluate(car(arguments))
+		next := num.(*Number).value
 		if previous.Cmp(next) == -1 {
 			previous = next
 		} else {
-			return BooleanObject(false)
+			return Boolean(false)
 		}
 	}
-	return BooleanObject(true)
+	return Boolean(true)
 }
 
-func (interpreter *Interpreter) is_greater_than_proc(arguments Object, environment *Environment) Object {
-	previous := car(arguments).(*NumberObject).value
+func is_greater_than_proc(environment *Environment, arguments Term) Term {
+	num := environment.evaluate(car(arguments))
+	previous := num.(*Number).value
 	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
-		next := car(arguments).(*NumberObject).value
+		num = environment.evaluate(car(arguments))
+		next := num.(*Number).value
 		if previous.Cmp(next) == 1 {
 			previous = next
 		} else {
-			return BooleanObject(false)
+			return Boolean(false)
 		}
 	}
-	return BooleanObject(true)
+	return Boolean(true)
 }
 
-func (interpreter *Interpreter) cons_proc(arguments Object, environment *Environment) Object {
-	return cons(car(arguments), car(cdr(arguments)))
-}
+func define(environment *Environment, term Term) Term {
+	var variable Symbol
+	var value Term
 
-func (interpreter *Interpreter) car_proc(arguments Object, environment *Environment) Object {
-	return car(car(arguments))
-}
-
-func (interpreter *Interpreter) cdr_proc(arguments Object, environment *Environment) Object {
-	return cdr(car(arguments))
-}
-
-func (interpreter *Interpreter) set_car_proc(arguments Object, environment *Environment) Object {
-	set_car(car(arguments), car(cdr(arguments)))
-	return nil
-}
-
-func (interpreter *Interpreter) set_cdr_proc(arguments Object, environment *Environment) Object {
-	set_cdr(car(arguments), car(cdr(arguments)))
-	return nil
-}
-
-func (interpreter *Interpreter) list_proc(arguments Object, environment *Environment) Object {
-	return arguments
-}
-
-func (interpreter *Interpreter) is_eq_proc(arguments Object, environment *Environment) (result Object) {
-	obj1 := car(arguments)
-	obj2 := car(cdr(arguments))
-
-	// TODO: try switch t1, t2 := ...
-	switch t1 := obj1.(type) {
-	case *NumberObject:
-		t2, ok := obj2.(*NumberObject)
-		return BooleanObject(ok && t1.value.Cmp(t2.value) == 0)
-	case RuneObject:
-		t2, ok := obj2.(RuneObject)
-		return BooleanObject(ok && t1 == t2)
-	case *StringObject:
-		t2, ok := obj2.(*StringObject)
-		return BooleanObject(ok && t1.value == t2.value)
+	switch v := car(term).(type) {
+	case Symbol:
+		variable = v
+		value = car(cdr(term))
 	default:
-		return BooleanObject(obj1 == obj2)
+		variable = car(car(term)).(Symbol)
+		parameters := cdr(car(term))
+		body := cdr(term)
+		value = lambda(environment, &Pair{parameters, body})
 	}
-	return
-}
-
-func (interpreter *Interpreter) write_char_proc(arguments Object, environment *Environment) Object {
-	out := os.Stdout
-	character := car(arguments)
-	arguments = cdr(arguments)
-	if arguments != nil {
-		panic("TODO") // out :=
-	}
-	fmt.Fprintf(out, "%s", character)
+	environment.Define(variable, value)
 	return nil
 }
 
-func (interpreter *Interpreter) write_proc(arguments Object, environment *Environment) Object {
-	out := os.Stdout
-	exp := car(arguments)
-	arguments = cdr(arguments)
-	if arguments != nil {
-		panic("TODO")
-	}
-	fmt.Fprintf(out, "%s", exp)
+func set(environment *Environment, term Term) Term {
+	variable := car(term)
+	value := car(cdr(term))
+	environment.Set(variable.(Symbol), value)
 	return nil
 }
 
-func (interpreter *Interpreter) read_proc(arguments Object, environment *Environment) (result Object) {
-	in := bufio.NewReader(os.Stdin)
-	if arguments != nil {
-		panic("TODO")
-	}
-	result = interpreter.Read(in)
-	if result == nil {
-		result = eof_object
-	}
-	return
+func lambda(environment *Environment, term Term) Term {
+	parameters := car(term)
+	term = cdr(term)
+	return Abstraction{parameters, term, environment}
 }
 
-func (interpreter *Interpreter) error_proc(arguments Object, environment *Environment) Object {
-	out := os.Stderr
-	for ; arguments != nil; arguments = cdr(arguments) {
-		fmt.Fprintf(out, "%s", car(arguments))
-		fmt.Fprintf(out, " ")
+func begin(environment *Environment, term Term) Term {
+	var result Term
+	for expressions := term; expressions != nil; expressions = cdr(expressions) {
+		expression := car(expressions)
+		result = environment.evaluate(expression)
 	}
-	panic("exiting")
+	return result
+}
+
+func and(environment *Environment, term Term) Term {
+	tests := term
+	for exp := tests; exp != nil; exp = cdr(exp) {
+		first_exp := car(exp)
+		result := environment.evaluate(first_exp).(Boolean)
+		if !result {
+			return result
+		}
+	}
+	return Boolean(true)
+}
+
+func or(environment *Environment, term Term) Term {
+	tests := term
+	for exp := tests; exp != nil; exp = cdr(exp) {
+		first_exp := car(exp)
+		result := environment.evaluate(first_exp).(Boolean)
+		if result {
+			return result
+		}
+	}
+	return Boolean(false)
+}
+
+func ifPrimitive(environment *Environment, term Term) Term {
+	if_predicate := car(term)
+	if environment.evaluate(if_predicate).(Boolean) {
+		if_consequent := car(cdr(term))
+ 		term = if_consequent
+ 	} else {
+ 		var if_alternative Term
+ 		if cdr(cdr(term)) == nil {
+ 			if_alternative = Boolean(false)
+ 		} else {
+ 			if_alternative = car(cdr(cdr(term)))
+ 		}
+ 		term = if_alternative
+ 	}
+ 	return environment.evaluate(term)
+}
+
+func apply(environment *Environment, term Term) Term {
+	operator := car(term)
+	operands := cdr(term)
+	return Application{operator, operands}
+}
+
+func evalPrimitive(environment *Environment, term Term) Term {
+	return environment.evaluate(car(term))
+}
+
+func let(environment *Environment, term Term) Term {
+	bindings := car(term)
+	body := cdr(term)
+
+	binding_parameter := func(binding Term) Term { return car(binding) }
+	parameters := list_from(bindings, binding_parameter)
+
+	binding_arguments := func(binding Term) Term { return car(cdr(binding)) }
+	arguments := list_from(bindings, binding_arguments)
+
+	operator := lambda(environment, cons(parameters, body))
+	operands := arguments
+
+	return Application{operator, operands}
 }

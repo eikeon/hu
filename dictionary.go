@@ -10,10 +10,10 @@ import (
 	"url"
 )
 
-type Term struct {
+type TermTmp struct {
 	Label        string
 	PartOfSpeech string
-	Definition   []Term
+	Definition   []TermTmp
 }
 
 var posCache = map[string][]string{}
@@ -25,9 +25,9 @@ var posCache = map[string][]string{}
 //
 type Word string
 
-func (w *Word) Terms() (terms []Term) {
+func (w *Word) TermTmps() (terms []TermTmp) {
 	for _, p := range w.PartsOfSpeech() {
-		terms = append(terms, Term{Label: w.String(), PartOfSpeech: p})
+		terms = append(terms, TermTmp{Label: w.String(), PartOfSpeech: p})
 	}
 	return terms
 }

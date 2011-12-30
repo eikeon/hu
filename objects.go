@@ -6,60 +6,46 @@ import (
 	"big"
 )
 
-type Object interface {
+type Term interface {
 	String() string
 }
 
-type RuneObject int
+type Rune int
 
-func (rune RuneObject) String() string {
+func (rune Rune) String() string {
 	return string(rune)
 }
 
-type BooleanObject bool
+type Boolean bool
 
-func (o BooleanObject) String() string {
-	var v byte
-	if o {
-		v = 't'
+func (b Boolean) String() (result string) {
+	if b {
+		result  = "true"
 	} else {
-		v = 'f'
+		result  = "false"
 	}
-	return fmt.Sprintf("#%c", v)
+	return
 }
 
-type NumberObject struct {
+type Number struct {
 	value *big.Int
 }
 
-func (o *NumberObject) String() string {
-	return o.value.String()
+func (n *Number) String() string {
+	return n.value.String()
 }
 
-type SymbolObject struct {
-	value string
+type Symbol string
+
+func (s Symbol) String() string {
+	return string(s)
 }
 
-func (o *SymbolObject) String() string {
-	return o.value
-}
+type String string
 
-func Symbol(value string) Object {
-	symbol, ok := symbol_table[value]
-	if !ok {
-		symbol = &SymbolObject{value}
-		symbol_table[value] = symbol
-	}
-	return symbol
-}
-
-type StringObject struct {
-	value string
-}
-
-func (o *StringObject) String() string {
+func (s String) String() string {
 	var out bytes.Buffer
-	for _, rune := range o.value {
+	for _, rune := range s {
 		switch rune {
 		case '\n':
 			out.WriteString("\\n")
@@ -77,182 +63,69 @@ func (o *StringObject) String() string {
 	return out.String()
 }
 
-type PairObject struct {
-	car, cdr Object
+type Pair struct {
+	car, cdr Term
 }
 
-func (pair *PairObject) String() string {
-	var out bytes.Buffer
-	out.WriteRune('(')
+func (pair *Pair) String() string {
+	return fmt.Sprintf("(%v %v)", pair.car, pair.cdr)
+}
 
-	car_obj := car(pair)
-	cdr_obj := cdr(pair)
-	if car_obj == nil {
-		fmt.Fprintf(&out, "Ø")
-	} else {
-		fmt.Fprintf(&out, "%v", car_obj)
-	}
-	if is_pair(cdr_obj) {
-		fmt.Fprintf(&out, " %s", cdr_obj)
-	} else if cdr_obj == nil {
+type PrimitiveFunction func(*Environment, Term) Term
 
-	} else {
-		if cdr_obj == nil {
-			fmt.Fprintf(&out, " . Ø", cdr_obj)
-		} else {
-			fmt.Fprintf(&out, " . %s", cdr_obj)
-		}
-	}
-	out.WriteRune(')')
-	return out.String()
+func (pf PrimitiveFunction) String() string {
+	return fmt.Sprintf("#<primitive-function> %p", pf)
 }
 
 type Application struct {
-	operator Object
-	operands Object
+	operator Term
+	operands Term
 }
 
-func (expression *Application) String() string {
-	var out bytes.Buffer
-	out.WriteRune('{')
-
-	car_obj := expression.operator
-	cdr_obj := expression.operands
-	if car_obj == nil {
-		fmt.Fprintf(&out, "Ø")
-	} else {
-		fmt.Fprintf(&out, "%v", car_obj)
-	}
-	if is_pair(cdr_obj) {
-		fmt.Fprintf(&out, " %s", cdr_obj)
-	} else if cdr_obj == nil {
-
-	} else {
-		if cdr_obj == nil {
-			fmt.Fprintf(&out, " . Ø", cdr_obj)
-		} else {
-			fmt.Fprintf(&out, " . %s", cdr_obj)
-		}
-	}
-	out.WriteRune('}')
-	return out.String()
+func (application Application) String() string {
+	return fmt.Sprintf("{%v %v}", application.operator, application.operands)
 }
 
 type Abstraction struct {
-	parameters Object
-	object Object
+	parameters Term
+	term Term
 	environment *Environment
 }
 
-func (expression *Abstraction) String() string {
-	return fmt.Sprintf("#<abstraction> %v %v", expression.parameters, expression.object)
+func (abstraction Abstraction) String() string {
+	return fmt.Sprintf("#<abstraction> %v %v", abstraction.parameters, abstraction.term)
 }
 
-type EOFObject struct {
-
+type Closure struct {
+	term Term
+	environment *Environment
 }
 
-func (o *EOFObject) String() string {
-	return "#<eof>"
+func (closure Closure) String() string {
+	return fmt.Sprintf("#<Closure> %v %v\n", closure.term, closure.environment)
 }
 
-type PrimitiveFunction func(*Interpreter, Object, *Environment) Object
+type Error string
 
-type PrimitiveFunctionObject struct {
-	function PrimitiveFunction
+func (error Error) String() string {
+	return string(error)
 }
 
-func (o *PrimitiveFunctionObject) String() string {
-	return fmt.Sprintf("#<primitive-function> %v", o.function)
+func cons(car, cdr Term) Term {
+	return &Pair{car, cdr}
 }
 
-var (
-	eof_object              Object
-	quote_symbol            Object
-	symbol_table            map[string]*SymbolObject
-)
-
-func init() {
-	symbol_table = make(map[string]*SymbolObject)
-	quote_symbol = Symbol("quote")
-	eof_object = &EOFObject{}
+func car(term Term) Term {
+	return term.(*Pair).car
 }
 
-func is_pair(obj Object) bool {
-	_, ok := obj.(*PairObject)
-	return ok
+func cdr(term Term) Term {
+	return term.(*Pair).cdr
 }
 
-func is_boolean(obj Object) bool {
-	_, ok := obj.(BooleanObject)
-	return ok
-}
-
-func is_symbol(obj Object) bool {
-	_, ok := obj.(*SymbolObject)
-	return ok
-}
-
-func is_number(obj Object) bool {
-	_, ok := obj.(*NumberObject)
-	return ok
-}
-
-func is_string(obj Object) bool {
-	_, ok := obj.(*StringObject)
-	return ok
-}
-
-func is_character(obj Object) bool {
-	_, ok := obj.(RuneObject)
-	return ok
-}
-
-func is_eof_object(obj Object) bool {
-	_, ok := obj.(*EOFObject)
-	return ok
-}
-
-func is_the_empty_list(obj Object) bool {
-	return obj == nil
-}
-
-func is_false(obj Object) bool {
-	v, ok := obj.(BooleanObject)
-	return ok && v == false
-}
-
-func is_true(obj Object) bool {
-	return is_false(obj) == false
-}
-
-func cons(car, cdr Object) Object {
-	return &PairObject{car, cdr}
-}
-
-func car(object Object) Object {
-	return object.(*PairObject).car
-}
-
-func cdr(object Object) Object {
-	return object.(*PairObject).cdr
-}
-
-func set_car(object, value Object) {
-	object.(*PairObject).car = value
-}
-
-func set_cdr(object, value Object) {
-	object.(*PairObject).cdr = value
-}
-
-func is_last(seq Object) bool {
-	return is_the_empty_list(cdr(seq))
-}
-
-func list_from(list Object, selector func(Object) Object) (result Object) {
+func list_from(list Term, selector func(Term) Term) (result Term) {
 	if list != nil {
-		result = &PairObject{selector(car(list)), list_from(cdr(list), selector)}
+		result = &Pair{selector(car(list)), list_from(cdr(list), selector)}
 	}
 	return
 }
