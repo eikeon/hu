@@ -2,7 +2,7 @@ package hu
 
 import "big"
 
-func add_proc(environment *Environment, arguments Term) Term {
+func add_numbers(environment *Environment, arguments Term) Term {
 	var result = big.NewInt(0)
 	for arguments != nil {
 		num := environment.evaluate(car(arguments)).(*Number)
@@ -10,6 +10,15 @@ func add_proc(environment *Environment, arguments Term) Term {
 		arguments = cdr(arguments)
 	}
 	return &Number{result}
+}
+
+func add_lists(environment *Environment, arguments Term) Term {
+	var pairs []*Pair
+	for arguments != nil {
+		pairs = append(pairs, environment.evaluate(car(arguments)).(*Pair))
+		arguments = cdr(arguments)
+	}
+	return concat(pairs...)
 }
 
 func subtract_proc(environment *Environment, arguments Term) Term {
@@ -115,7 +124,7 @@ func set(environment *Environment, term Term) Term {
 
 func lambda(environment *Environment, term Term) Term {
 	parameters := car(term)
-	term = cdr(term)
+	term = car(cdr(term))
 	return Abstraction{parameters, term, environment}
 }
 
@@ -170,9 +179,7 @@ func ifPrimitive(environment *Environment, term Term) Term {
 }
 
 func apply(environment *Environment, term Term) Term {
-	operator := car(term)
-	operands := cdr(term)
-	return Application{operator, operands}
+	return Application{term}
 }
 
 func evalPrimitive(environment *Environment, term Term) Term {
@@ -192,5 +199,5 @@ func let(environment *Environment, term Term) Term {
 	operator := lambda(environment, cons(parameters, body))
 	operands := arguments
 
-	return Application{operator, operands}
+	return Application{cons(operator, operands)}
 }

@@ -77,13 +77,18 @@ func (pf PrimitiveFunction) String() string {
 	return fmt.Sprintf("#<primitive-function> %p", pf)
 }
 
+type Primitive func(*Environment) Term
+
+func (p Primitive) String() string {
+	return fmt.Sprintf("#<primitive> %p", p)
+}
+
 type Application struct {
-	operator Term
-	operands Term
+	term Term
 }
 
 func (application Application) String() string {
-	return fmt.Sprintf("{%v %v}", application.operator, application.operands)
+	return fmt.Sprintf("{%v}", application.term)
 }
 
 type Abstraction struct {
@@ -128,4 +133,22 @@ func list_from(list Term, selector func(Term) Term) (result Term) {
 		result = &Pair{selector(car(list)), list_from(cdr(list), selector)}
 	}
 	return
+}
+
+func concat(pairs ...*Pair) (result *Pair) {
+	var last *Pair
+	for _, pair := range pairs {
+		var term Term = pair
+		for ; term != nil; term = cdr(term) {
+			if result == nil {
+				result = &Pair{car(term), nil}
+				last = result
+			} else {
+				p := &Pair{car(term), nil}
+				last.cdr = p
+				last = p
+			}
+		}
+	}
+	return result
 }

@@ -46,7 +46,7 @@ func read(lexer *lexer) Term {
 			if next.typ != itemCloseCurlyBrace {
 				panic("expected }")
 			}
-			return Application{car(expression), cdr(expression)}
+			return Application{expression}
 		case itemCloseCurlyBrace:
 		case itemQuote:
 			return cons(Symbol("quote"), read(lexer))

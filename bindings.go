@@ -1,5 +1,10 @@
 package hu
 
+import (
+	"strings"
+)
+
+
 func AddDefaultBindings(environment *Environment) {
 	environment.Define("true", Boolean(true))
 	environment.Define("false", Boolean(false))
@@ -7,7 +12,10 @@ func AddDefaultBindings(environment *Environment) {
 	environment.AddPrimitive("=", is_number_equal_proc)
 	environment.AddPrimitive("<", is_less_than_proc)
 	environment.AddPrimitive(">", is_greater_than_proc)
-	environment.AddPrimitive("+", add_proc)
+
+	environment.AddPrimitive("+", add_numbers)
+	environment.AddPrimitive("concat", add_lists)
+
 	environment.AddPrimitive("-", subtract_proc)
 
 	environment.AddPrimitive("*", multiply_proc)
@@ -24,4 +32,9 @@ func AddDefaultBindings(environment *Environment) {
 	environment.AddPrimitive("apply", apply)
 	environment.AddPrimitive("eval", evalPrimitive)
 	environment.AddPrimitive("let", let)
+
+	environment.evaluate(Read(strings.NewReader(`
+{define plus {operator (lhs) (rhs) {+ lhs rhs}}}
+{define plus_list_operator {operator lhs rhs {concat lhs rhs}}} {1 2 plus 3 4}}
+	`)))
 }

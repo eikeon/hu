@@ -34,21 +34,22 @@ func ClosureIfNeeded(term Term, environment *Environment) Term {
 
 // returns a new (child) environment from this environment extended
 // with bindings given by variables, values.
-func (environment *Environment) NewChildEnvironment(variables, values Term) *Environment {
+func (environment *Environment) NewChildEnvironment() *Environment {
 	child := NewEnvironment()
 	child.parent = environment
+	return child
+}
+
+func (environment *Environment) Extend(variables, values Term) {
 	for ; variables != nil && values != nil; variables, values = cdr(variables), cdr(values) {
 		switch variables.(type) {
 		case *Pair:
-			variable, value := car(variables), car(values)
-			child.frame[variable.(Symbol)] = ClosureIfNeeded(value, environment)
+			environment.Extend(car(variables), car(values))
 		default:
-			panic("TODO: needs a test case")
-			child.frame[variables.(Symbol)] = ClosureIfNeeded(values, environment)
-			return child
+			environment.frame[variables.(Symbol)] = ClosureIfNeeded(values, environment.parent)
+			return
 		}
 	}
-	return child
 }
 
 func (environment *Environment) Define(variable Symbol, value Term) {
@@ -105,17 +106,30 @@ tailcall:
 		term = o.environment.evaluate(o.term)
 		goto tailcall
 	case Application:
-	 	switch operator:= environment.evaluate(o.operator).(type) {
-	 	case PrimitiveFunction:
-	 		term = operator(environment, o.operands)
-	 		goto tailcall
-		case Abstraction:
-			environment = environment.NewChildEnvironment(operator.parameters, o.operands)
-			term = environment.evaluate(operator.term)
-			goto tailcall
-		default:
-			panic(fmt.Sprintf("operator %v of unknown type %T", operator, operator))
-	 	}
+		var lhs, last *Pair
+		for term = o.term; term != nil; term = cdr(term) {
+			var values Term
+			if lhs == nil {
+				values = cdr(term)
+			} else {
+				values = &Pair{lhs, &Pair{cdr(term), nil}}
+			}
+			switch operator := environment.evaluate(car(term)).(type) {
+			case PrimitiveFunction:
+				term = operator(environment, values)
+				goto tailcall
+			case Abstraction:
+				environment = environment.NewChildEnvironment()
+				environment.Extend(operator.parameters, values) // TODO: add operator or self to bindings
+				term = environment.evaluate(operator.term)
+				goto tailcall
+			default:
+				e := &Pair{operator, nil}
+				if lhs == nil {	lhs = e	} else { last.cdr = e }
+				last = e
+			}
+		}
+		term = lhs
 	}
 	return term
 }
