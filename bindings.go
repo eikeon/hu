@@ -9,11 +9,15 @@ func AddDefaultBindings(environment *Environment) {
 	environment.Define("true", Boolean(true))
 	environment.Define("false", Boolean(false))
 
+	environment.AddPrimitive("lambda", lambda)
+	environment.AddPrimitive("operator", operator)
+
 	environment.AddPrimitive("=", is_number_equal_proc)
 	environment.AddPrimitive("<", is_less_than_proc)
 	environment.AddPrimitive(">", is_greater_than_proc)
 
 	environment.AddPrimitive("+", add_numbers)
+	environment.Define("add_numbers", Primitive(add_numbersP))
 	environment.AddPrimitive("concat", add_lists)
 
 	environment.AddPrimitive("-", subtract_proc)
@@ -24,7 +28,6 @@ func AddDefaultBindings(environment *Environment) {
 
 	environment.AddPrimitive("define", define)
 	environment.AddPrimitive("set", set)
-	environment.AddPrimitive("lambda", lambda)
 	environment.AddPrimitive("begin", begin)
 	environment.AddPrimitive("if", ifPrimitive)
 	environment.AddPrimitive("and", and)
@@ -34,7 +37,8 @@ func AddDefaultBindings(environment *Environment) {
 	environment.AddPrimitive("let", let)
 
 	environment.evaluate(Read(strings.NewReader(`
-{define plus {operator (lhs) (rhs) {+ lhs rhs}}}
-{define plus_list_operator {operator lhs rhs {concat lhs rhs}}} {1 2 plus 3 4}}
+{define + {lambda numbers add_numbers}}
+{define plus {operator ((lhs) (rhs)) {+ lhs rhs}}}
+{define plus_list_operator {operator (lhs rhs) {concat lhs rhs}}} {1 2 plus 3 4}}
 	`)))
 }

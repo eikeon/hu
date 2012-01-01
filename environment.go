@@ -105,6 +105,9 @@ tailcall:
 	case Closure:
 		term = o.environment.evaluate(o.term)
 		goto tailcall
+	case Primitive:
+		term = o(environment)
+		goto tailcall
 	case Application:
 		var lhs, last *Pair
 		for term = o.term; term != nil; term = cdr(term) {
@@ -119,6 +122,7 @@ tailcall:
 				term = operator(environment, values)
 				goto tailcall
 			case Abstraction:
+				values = &Pair{lhs, &Pair{cdr(term), nil}}
 				environment = environment.NewChildEnvironment()
 				environment.Extend(operator.parameters, values) // TODO: add operator or self to bindings
 				term = environment.evaluate(operator.term)

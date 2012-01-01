@@ -1,6 +1,21 @@
 package hu
 
-import "big"
+import (
+	"big"
+)
+
+
+func lambda(environment *Environment, term Term) Term {
+	parameters := &Pair{nil, &Pair{car(term), nil}}
+	term = car(cdr(term))
+	return Abstraction{parameters, term, environment}
+}
+
+func operator(environment *Environment, term Term) Term {
+	parameters := car(term)
+	term = car(cdr(term))
+	return Abstraction{parameters, term, environment}
+}
 
 func add_numbers(environment *Environment, arguments Term) Term {
 	var result = big.NewInt(0)
@@ -8,6 +23,17 @@ func add_numbers(environment *Environment, arguments Term) Term {
 		num := environment.evaluate(car(arguments)).(*Number)
 		result.Add(result, num.value)
 		arguments = cdr(arguments)
+	}
+	return &Number{result}
+}
+
+func add_numbersP(environment *Environment) Term {
+	var result = big.NewInt(0)
+	numbers := environment.Get(Symbol("numbers"))
+	for numbers != nil {
+		num := environment.evaluate(car(numbers)).(*Number)
+		result.Add(result, num.value)
+		numbers = cdr(numbers)
 	}
 	return &Number{result}
 }
@@ -120,12 +146,6 @@ func set(environment *Environment, term Term) Term {
 	value := car(cdr(term))
 	environment.Set(variable.(Symbol), value)
 	return nil
-}
-
-func lambda(environment *Environment, term Term) Term {
-	parameters := car(term)
-	term = car(cdr(term))
-	return Abstraction{parameters, term, environment}
 }
 
 func begin(environment *Environment, term Term) Term {
