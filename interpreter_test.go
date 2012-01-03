@@ -45,8 +45,9 @@ func is_nil() func(Term) bool {
 }
 
 var tests = []testCase{
+	{"{{lambda numbers add_numbers} 1 2 3}", is_eq_number(6)},
+
 	{"true", is_eq(Boolean(true))},
-	{"{+ 1 2}", is_eq_number(3)},
 	{"{+ 1 2}", is_eq_number(3)},
 	{"{+ 1 {+ 2 3}}", is_eq_number(6)},
 	{"{concat (1 2) (3 4)}", is_pair()},

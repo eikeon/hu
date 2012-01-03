@@ -1,9 +1,6 @@
 package hu
 
-import (
-	"strings"
-)
-
+import "strings"
 
 func AddDefaultBindings(environment *Environment) {
 	environment.Define("true", Boolean(true))
@@ -37,7 +34,6 @@ func AddDefaultBindings(environment *Environment) {
 	environment.AddPrimitive("let", let)
 
 	environment.evaluate(Read(strings.NewReader(`
-{define + {lambda numbers add_numbers}}
 {define plus {operator ((lhs) (rhs)) {+ lhs rhs}}}
 {define plus_list_operator {operator (lhs rhs) {concat lhs rhs}}} {1 2 plus 3 4}}
 	`)))

@@ -111,21 +111,16 @@ tailcall:
 	case Application:
 		var lhs, last *Pair
 		for term = o.term; term != nil; term = cdr(term) {
-			var values Term
-			if lhs == nil {
-				values = cdr(term)
-			} else {
-				values = &Pair{lhs, &Pair{cdr(term), nil}}
-			}
 			switch operator := environment.evaluate(car(term)).(type) {
-			case PrimitiveFunction:
-				term = operator(environment, values)
-				goto tailcall
-			case Abstraction:
-				values = &Pair{lhs, &Pair{cdr(term), nil}}
-				environment = environment.NewChildEnvironment()
-				environment.Extend(operator.parameters, values) // TODO: add operator or self to bindings
-				term = environment.evaluate(operator.term)
+			case Operator:
+				var operands Term
+				switch operator.(type) {
+				case PrimitiveFunction:
+					operands = cdr(term)
+				default:
+					operands = &Pair{lhs, &Pair{cdr(term), nil}}
+				}
+				term = operator.apply(environment, operands)
 				goto tailcall
 			default:
 				e := &Pair{operator, nil}

@@ -8,13 +8,13 @@ import (
 func lambda(environment *Environment, term Term) Term {
 	parameters := &Pair{nil, &Pair{car(term), nil}}
 	term = car(cdr(term))
-	return Abstraction{parameters, term, environment}
+	return Abstraction{parameters, term}
 }
 
 func operator(environment *Environment, term Term) Term {
 	parameters := car(term)
 	term = car(cdr(term))
-	return Abstraction{parameters, term, environment}
+	return Abstraction{parameters, term}
 }
 
 func add_numbers(environment *Environment, arguments Term) Term {

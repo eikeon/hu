@@ -71,7 +71,15 @@ func (pair *Pair) String() string {
 	return fmt.Sprintf("(%v %v)", pair.car, pair.cdr)
 }
 
+type Operator interface {
+	apply(*Environment, Term) Term
+}
+
 type PrimitiveFunction func(*Environment, Term) Term
+
+func (pf PrimitiveFunction) apply(environment *Environment, term Term) Term {
+	return pf(environment, term)
+}
 
 func (pf PrimitiveFunction) String() string {
 	return fmt.Sprintf("#<primitive-function> %p", pf)
@@ -94,7 +102,12 @@ func (application Application) String() string {
 type Abstraction struct {
 	parameters Term
 	term Term
-	environment *Environment
+}
+
+func (a Abstraction) apply(environment *Environment, values Term) Term {
+	e := environment.NewChildEnvironment()
+	e.Extend(a.parameters, values)
+	return Closure{a.term, e}
 }
 
 func (abstraction Abstraction) String() string {
