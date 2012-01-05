@@ -98,37 +98,10 @@ func (environment *Environment) Evaluate(term Term) (result Term) {
 
 func (environment *Environment) evaluate(term Term) Term {
 tailcall:
-	switch o := term.(type) {
-	case Symbol:
-		term = environment.Get(o)
+	switch t := term.(type) {
+	case Evaluable:
+		term = t.Evaluate(environment)
 		goto tailcall
-	case Closure:
-		term = o.environment.evaluate(o.term)
-		goto tailcall
-	case Primitive:
-		term = o(environment)
-		goto tailcall
-	case Application:
-		var lhs, last *Pair
-		for term = o.term; term != nil; term = cdr(term) {
-			switch operator := environment.evaluate(car(term)).(type) {
-			case Operator:
-				var operands Term
-				switch operator.(type) {
-				case PrimitiveFunction:
-					operands = cdr(term)
-				default:
-					operands = &Pair{lhs, &Pair{cdr(term), nil}}
-				}
-				term = operator.apply(environment, operands)
-				goto tailcall
-			default:
-				e := &Pair{operator, nil}
-				if lhs == nil {	lhs = e	} else { last.cdr = e }
-				last = e
-			}
-		}
-		term = lhs
 	}
 	return term
 }
