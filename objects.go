@@ -208,12 +208,15 @@ func (environment *Environment) Closure(term Term) Term {
 
 func (environment *Environment) Extend(variables, values Term) {
 	for ; variables != nil && values != nil; variables, values = cdr(variables), cdr(values) {
-		switch variables.(type) {
+		switch variable := variables.(type) {
 		case *Pair:
-			environment.Extend(car(variables), car(values))
-		default:
-			environment.frame[variables.(Symbol)] = environment.parent.Closure(values)
+			value := values.(*Pair).car
+			environment.Extend(variable.car, value)
+		case Symbol:
+			environment.frame[variable] = environment.parent.Closure(values)
 			return
+		default:
+			panic("Unexpected type for variables")
 		}
 	}
 }
