@@ -10,8 +10,8 @@ type Term interface {
 	String() string
 }
 
-type Evaluable interface {
-	Evaluate(*Environment) Term
+type Reducible interface {
+	Reduce(*Environment) Term
 }
 
 type Rune int
@@ -45,7 +45,7 @@ func (s Symbol) String() string {
 	return string(s)
 }
 
-func (s Symbol) Evaluate(environment *Environment) Term {
+func (s Symbol) Reduce(environment *Environment) Term {
 	return environment.Get(s)
 }
 
@@ -99,7 +99,7 @@ func (p Primitive) String() string {
 	return fmt.Sprintf("#<primitive> %p", p)
 }
 
-func (p Primitive) Evaluate(environment *Environment) Term {
+func (p Primitive) Reduce(environment *Environment) Term {
 	return p(environment)
 }
 
@@ -111,7 +111,7 @@ func (application Application) String() string {
 	return fmt.Sprintf("{%v}", application.term)
 }
 
-func (application Application) Evaluate(environment *Environment) Term {
+func (application Application) Reduce(environment *Environment) Term {
 	var lhs, last *Pair
 	for term := application.term; term != nil; term = cdr(term) {
 		switch operator := environment.evaluate(car(term)).(type) {
@@ -158,7 +158,7 @@ func (closure Closure) String() string {
 	return fmt.Sprintf("#<Closure> %v %v\n", closure.term, closure.environment)
 }
 
-func (closure Closure) Evaluate(environment *Environment) Term {
+func (closure Closure) Reduce(environment *Environment) Term {
 	return closure.environment.evaluate(closure.term)
 }
 
@@ -265,8 +265,8 @@ func (environment *Environment) Evaluate(term Term) (result Term) {
 func (environment *Environment) evaluate(term Term) Term {
 tailcall:
 	switch t := term.(type) {
-	case Evaluable:
-		term = t.Evaluate(environment)
+	case Reducible:
+		term = t.Reduce(environment)
 		goto tailcall
 	}
 	return term
