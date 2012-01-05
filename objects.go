@@ -272,10 +272,6 @@ tailcall:
 	return term
 }
 
-func cons(car, cdr Term) Term {
-	return &Pair{car, cdr}
-}
-
 func car(term Term) Term {
 	return term.(*Pair).car
 }

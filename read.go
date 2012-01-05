@@ -49,7 +49,7 @@ func read(lexer *lexer) Term {
 			return Application{expression}
 		case itemCloseCurlyBrace:
 		case itemQuote:
-			return cons(Symbol("quote"), read(lexer))
+			return &Pair{Symbol("quote"), read(lexer)}
 		case itemEOF:
 			return nil
 		case itemPunctuation:
@@ -93,5 +93,5 @@ done_car:
 		}
 	}
 done_cdr:
-	return cons(car_term, cdr_term)
+	return &Pair{car_term, cdr_term}
 }

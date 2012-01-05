@@ -216,8 +216,8 @@ func let(environment *Environment, term Term) Term {
 	binding_arguments := func(binding Term) Term { return car(cdr(binding)) }
 	arguments := list_from(bindings, binding_arguments)
 
-	operator := lambda(environment, cons(parameters, body))
+	operator := lambda(environment, &Pair{parameters, body})
 	operands := arguments
 
-	return Application{cons(operator, operands)}
+	return Application{&Pair{operator, operands}}
 }
