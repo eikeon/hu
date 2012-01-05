@@ -4,7 +4,6 @@ TARG=hu
 GOFILES=\
 	objects.go\
 	read.go\
-	environment.go\
 	primitives.go\
 	bindings.go\
 	lex.go\
