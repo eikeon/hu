@@ -6,8 +6,9 @@ import (
 
 
 func lambda(environment *Environment, term Term) Term {
-	parameters := &Pair{nil, &Pair{car(term), nil}}
-	term = car(cdr(term))
+	t := term.(*Pair)
+	parameters := &Pair{nil, &Pair{t.car, nil}}
+	term = t.cdr.(*Pair).car
 	return Abstraction{parameters, term}
 }
 
@@ -17,12 +18,13 @@ func operator(environment *Environment, term Term) Term {
 	return Abstraction{parameters, term}
 }
 
-func add_numbers(environment *Environment, arguments Term) Term {
+func add_numbers(environment *Environment, term Term) Term {
 	var result = big.NewInt(0)
+	arguments, _ := term.(*Pair)
 	for arguments != nil {
-		num := environment.evaluate(car(arguments)).(*Number)
+		num := environment.evaluate(arguments.car).(*Number)
 		result.Add(result, num.value)
-		arguments = cdr(arguments)
+		arguments, _ = arguments.cdr.(*Pair)
 	}
 	return &Number{result}
 }
@@ -157,10 +159,9 @@ func begin(environment *Environment, term Term) Term {
 	return result
 }
 
-func and(environment *Environment, term Term) Term {
-	tests := term
-	for exp := tests; exp != nil; exp = cdr(exp) {
-		first_exp := car(exp)
+func and(environment *Environment, tests Term) Term {
+	for exp := tests.(*Pair); exp != nil; exp, _ = exp.cdr.(*Pair) {
+		first_exp := exp.car
 		result := environment.evaluate(first_exp).(Boolean)
 		if !result {
 			return result
@@ -169,10 +170,9 @@ func and(environment *Environment, term Term) Term {
 	return Boolean(true)
 }
 
-func or(environment *Environment, term Term) Term {
-	tests := term
-	for exp := tests; exp != nil; exp = cdr(exp) {
-		first_exp := car(exp)
+func or(environment *Environment, tests Term) Term {
+	for exp := tests.(*Pair); exp != nil; exp, _ = exp.cdr.(*Pair) {
+		first_exp := exp.car
 		result := environment.evaluate(first_exp).(Boolean)
 		if result {
 			return result

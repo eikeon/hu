@@ -113,23 +113,26 @@ func (application Application) String() string {
 
 func (application Application) Reduce(environment *Environment) Term {
 	var lhs, last *Pair
-	for term := application.term; term != nil; term = cdr(term) {
-		switch operator := environment.evaluate(car(term)).(type) {
-		case Operator:
-			var operands Term
-			switch operator.(type) {
-			case PrimitiveFunction:
-				operands = cdr(term)
-			default:
-				operands = &Pair{lhs, &Pair{cdr(term), nil}}
-			}
-			term = operator.apply(environment, operands)
-			return term
+	term := application.term.(*Pair)
+	next:
+	switch operator := environment.evaluate(term.car).(type) {
+	case Operator:
+		var operands Term
+		switch operator.(type) {
+		case PrimitiveFunction:
+			operands = term.cdr
 		default:
-			e := &Pair{operator, nil}
-			if lhs == nil {	lhs = e	} else { last.cdr = e }
-			last = e
+			operands = &Pair{lhs, &Pair{term.cdr, nil}}
 		}
+		return operator.apply(environment, operands)
+	default:
+		e := &Pair{operator, nil}
+		if lhs == nil {	lhs = e	} else { last.cdr = e }
+		last = e
+	}
+	if term.cdr != nil {
+		term = term.cdr.(*Pair)
+		goto next
 	}
 	return lhs
 }
@@ -207,28 +210,26 @@ func (environment *Environment) Closure(term Term) Term {
 }
 
 func (environment *Environment) Extend(variables, values Term) {
-	for ; variables != nil && values != nil; variables, values = cdr(variables), cdr(values) {
-		switch variable := variables.(type) {
-		case *Pair:
-			value := values.(*Pair).car
-			environment.Extend(variable.car, value)
-		case Symbol:
-			environment.frame[variable] = environment.parent.Closure(values)
-			return
-		default:
-			panic("Unexpected type for variables")
-		}
+top:
+	switch vars := variables.(type) {
+	case *Pair:
+		vals := values.(*Pair)
+		environment.Extend(vars.car, vals.car)
+		variables, values = vars.cdr, vals.cdr
+		goto top
+	case Symbol:
+		environment.Define(vars, environment.parent.Closure(values))
 	}
 }
 
 func (environment *Environment) Define(variable Symbol, value Term) {
-	environment.frame[variable] = environment.Closure(value)
+	environment.frame[variable] = value
 }
 
 func (environment *Environment) Set(variable Symbol, value Term) {
 	_, ok := environment.frame[variable]
 	if ok {
-		environment.frame[variable] = environment.Closure(value)
+		environment.Define(variable, value)
 	} else if environment.parent != nil {
 		environment.parent.Set(variable, value)
 	} else {
@@ -284,8 +285,9 @@ func cdr(term Term) Term {
 }
 
 func list_from(list Term, selector func(Term) Term) (result Term) {
-	if list != nil {
-		result = &Pair{selector(car(list)), list_from(cdr(list), selector)}
+	switch l := list.(type) {
+	case *Pair:
+		result = &Pair{selector(l.car), list_from(l.cdr, selector)}
 	}
 	return
 }
@@ -293,16 +295,18 @@ func list_from(list Term, selector func(Term) Term) (result Term) {
 func concat(pairs ...*Pair) (result *Pair) {
 	var last *Pair
 	for _, pair := range pairs {
-		var term Term = pair
-		for ; term != nil; term = cdr(term) {
-			if result == nil {
-				result = &Pair{car(term), nil}
-				last = result
-			} else {
-				p := &Pair{car(term), nil}
-				last.cdr = p
-				last = p
-			}
+	next:
+		if result == nil {
+			result = &Pair{pair.car, nil}
+			last = result
+		} else {
+			p := &Pair{pair.car, nil}
+			last.cdr = p
+			last = p
+		}
+		if pair.cdr != nil {
+			pair = pair.cdr.(*Pair)
+			goto next
 		}
 	}
 	return result
