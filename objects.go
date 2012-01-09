@@ -24,9 +24,9 @@ type Boolean bool
 
 func (b Boolean) String() (result string) {
 	if b {
-		result  = "true"
+		result	= "true"
 	} else {
-		result  = "false"
+		result	= "false"
 	}
 	return
 }
@@ -71,12 +71,10 @@ func (s String) String() string {
 	return out.String()
 }
 
-type Pair struct {
-	car, cdr Term
-}
+type Tuple []Term
 
-func (pair *Pair) String() string {
-	return fmt.Sprintf("(%v %v)", pair.car, pair.cdr)
+func (tuple Tuple) String() string {
+	return fmt.Sprintf("(%v)", []Term(tuple))
 }
 
 type Operator interface {
@@ -112,29 +110,23 @@ func (application Application) String() string {
 }
 
 func (application Application) Reduce(environment *Environment) Term {
-	var lhs, last *Pair
-	term := application.term.(*Pair)
-	next:
-	switch operator := environment.evaluate(term.car).(type) {
-	case Operator:
-		var operands Term
-		switch operator.(type) {
-		case PrimitiveFunction:
-			operands = term.cdr
-		default:
-			operands = &Pair{lhs, &Pair{term.cdr, nil}}
+	terms := application.term.(Tuple)
+	for i, term := range(terms) {
+		switch operator := environment.evaluate(term).(type) {
+		case Operator:
+			var operands Term
+			switch operator.(type) {
+			case PrimitiveFunction:
+				operands = Tuple(terms[i+1:])
+			default:
+				lhs := Tuple(terms[0:i])
+				rhs := Tuple(terms[i+1:])
+				operands = Tuple([]Term{lhs, rhs})
+			}
+			return operator.apply(environment, operands)
 		}
-		return operator.apply(environment, operands)
-	default:
-		e := &Pair{operator, nil}
-		if lhs == nil {	lhs = e	} else { last.cdr = e }
-		last = e
 	}
-	if term.cdr != nil {
-		term = term.cdr.(*Pair)
-		goto next
-	}
-	return lhs
+	return nil
 }
 
 type Abstraction struct {
@@ -210,13 +202,16 @@ func (environment *Environment) Closure(term Term) Term {
 }
 
 func (environment *Environment) Extend(variables, values Term) {
-top:
 	switch vars := variables.(type) {
-	case *Pair:
-		vals := values.(*Pair)
-		environment.Extend(vars.car, vals.car)
-		variables, values = vars.cdr, vals.cdr
-		goto top
+	case Tuple:
+		vals := values.(Tuple)
+		if len(vals)!=len(vars) {
+			fmt.Println("type mismatch:", vals, vars)
+		}
+		for i, v := range(vars) {
+			val := vals[i]
+			environment.Extend(v, val)
+		}
 	case Symbol:
 		environment.Define(vars, environment.parent.Closure(values))
 	}
@@ -274,40 +269,4 @@ tailcall:
 		goto tailcall
 	}
 	return term
-}
-
-func car(term Term) Term {
-	return term.(*Pair).car
-}
-
-func cdr(term Term) Term {
-	return term.(*Pair).cdr
-}
-
-func list_from(list Term, selector func(Term) Term) (result Term) {
-	switch l := list.(type) {
-	case *Pair:
-		result = &Pair{selector(l.car), list_from(l.cdr, selector)}
-	}
-	return
-}
-
-func concat(pairs ...*Pair) (result *Pair) {
-	var last *Pair
-	for _, pair := range pairs {
-	next:
-		if result == nil {
-			result = &Pair{pair.car, nil}
-			last = result
-		} else {
-			p := &Pair{pair.car, nil}
-			last.cdr = p
-			last = p
-		}
-		if pair.cdr != nil {
-			pair = pair.cdr.(*Pair)
-			goto next
-		}
-	}
-	return result
 }

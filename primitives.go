@@ -6,25 +6,25 @@ import (
 
 
 func lambda(environment *Environment, term Term) Term {
-	t := term.(*Pair)
-	parameters := &Pair{nil, &Pair{t.car, nil}}
-	term = t.cdr.(*Pair).car
+	terms := term.(Tuple)
+	parameters := Tuple([]Term{nil, terms[0]})
+	//parameters := Tuple([]Term{nil, Tuple([]Term{terms[0]})})
+	term = terms[1]
 	return Abstraction{parameters, term}
 }
 
 func operator(environment *Environment, term Term) Term {
-	parameters := car(term)
-	term = car(cdr(term))
+	terms := term.(Tuple)
+	parameters := terms[0]
+	term = terms[1]
 	return Abstraction{parameters, term}
 }
 
 func add_numbers(environment *Environment, term Term) Term {
 	var result = big.NewInt(0)
-	arguments, _ := term.(*Pair)
-	for arguments != nil {
-		num := environment.evaluate(arguments.car).(*Number)
+	for _, argument := range(term.(Tuple)) {
+		num := environment.evaluate(argument).(*Number)
 		result.Add(result, num.value)
-		arguments, _ = arguments.cdr.(*Pair)
 	}
 	return &Number{result}
 }
@@ -32,62 +32,65 @@ func add_numbers(environment *Environment, term Term) Term {
 func add_numbersP(environment *Environment) Term {
 	var result = big.NewInt(0)
 	numbers := environment.Get(Symbol("numbers"))
-	for numbers != nil {
-		num := environment.evaluate(car(numbers)).(*Number)
+	for _, number := range(numbers.(Tuple)) {
+		num := environment.evaluate(number).(*Number)
 		result.Add(result, num.value)
-		numbers = cdr(numbers)
 	}
 	return &Number{result}
 }
 
 func add_lists(environment *Environment, arguments Term) Term {
-	var pairs []*Pair
-	for arguments != nil {
-		pairs = append(pairs, environment.evaluate(car(arguments)).(*Pair))
-		arguments = cdr(arguments)
+	var terms []Term
+	for _, argument := range(arguments.(Tuple)) {
+		for _, term := range(environment.evaluate(argument).(Tuple)) {
+			terms = append(terms, term)
+		}
 	}
-	return concat(pairs...)
+	return Tuple(terms)
 }
 
-func subtract_proc(environment *Environment, arguments Term) Term {
+func subtract_proc(environment *Environment, term Term) Term {
+	terms := term.(Tuple)
 	// TODO: implement uniary negation
-	num := environment.evaluate(car(arguments)).(*Number)
+	num := environment.evaluate(terms[0]).(*Number)
 	result := big.NewInt(0).Set(num.value)
-	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
-		num = environment.evaluate(car(arguments)).(*Number)
+	for _, argument := range(terms[1:]) {
+		num = environment.evaluate(argument).(*Number)
 		result.Sub(result, num.value)
 	}
 	return &Number{result}
 }
 
-func multiply_proc(environment *Environment, arguments Term) Term {
+func multiply_proc(environment *Environment, term Term) Term {
+	terms := term.(Tuple)
 	var result = big.NewInt(1)
-
-	for arguments != nil {
-		result.Mul(result, car(arguments).(*Number).value)
-		arguments = cdr(arguments)
+	for _, argument := range(terms) {
+		result.Mul(result, argument.(*Number).value)
 	}
 	return &Number{result}
 }
 
-func quotient_proc(environment *Environment, arguments Term) Term {
-	a := environment.evaluate(car(arguments)).(*Number)
-	b := environment.evaluate(car(cdr(arguments))).(*Number)
+func quotient_proc(environment *Environment, term Term) Term {
+        terms := term.(Tuple)
+	a := environment.evaluate(terms[0]).(*Number)
+	b := environment.evaluate(terms[1]).(*Number)
 	result := big.NewInt(0).Quo(a.value, b.value)
 	return &Number{result}
 }
 
-func remainder_proc(environment *Environment, arguments Term) Term {
-	a := environment.evaluate(car(arguments)).(*Number)
-	b := environment.evaluate(car(cdr(arguments))).(*Number)
+func remainder_proc(environment *Environment, term Term) Term {
+        terms := term.(Tuple)
+	a := environment.evaluate(terms[0]).(*Number)
+	b := environment.evaluate(terms[1]).(*Number)
 	result := big.NewInt(0).Rem(a.value, b.value)
 	return &Number{result}
 }
 
-func is_number_equal_proc(environment *Environment, arguments Term) Term {
-	value := car(arguments).(*Number).value
-	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
-		num := environment.evaluate(car(arguments)).(*Number)
+func is_number_equal_proc(environment *Environment, term Term) Term {
+	terms := term.(Tuple)
+	value := terms[0].(*Number).value
+	for _, argument := range(terms[1:]) {
+		num := environment.evaluate(argument).(*Number)
 		if value.Cmp(num.value) != 0 {
 			return Boolean(false)
 		}
@@ -95,11 +98,12 @@ func is_number_equal_proc(environment *Environment, arguments Term) Term {
 	return Boolean(true)
 }
 
-func is_less_than_proc(environment *Environment, arguments Term) Term {
-	num := environment.evaluate(car(arguments))
+func is_less_than_proc(environment *Environment, term Term) Term {
+	terms := term.(Tuple)
+	num := environment.evaluate(terms[0])
 	previous := num.(*Number).value
-	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
-		num = environment.evaluate(car(arguments))
+	for _, argument := range(terms[1:]) {
+		num = environment.evaluate(argument)
 		next := num.(*Number).value
 		if previous.Cmp(next) == -1 {
 			previous = next
@@ -110,11 +114,12 @@ func is_less_than_proc(environment *Environment, arguments Term) Term {
 	return Boolean(true)
 }
 
-func is_greater_than_proc(environment *Environment, arguments Term) Term {
-	num := environment.evaluate(car(arguments))
+func is_greater_than_proc(environment *Environment, term Term) Term {
+	terms := term.(Tuple)
+	num := environment.evaluate(terms[0])
 	previous := num.(*Number).value
-	for arguments = cdr(arguments); arguments != nil; arguments = cdr(arguments) {
-		num = environment.evaluate(car(arguments))
+	for _, argument := range(terms[1:]) {
+		num = environment.evaluate(argument)
 		next := num.(*Number).value
 		if previous.Cmp(next) == 1 {
 			previous = next
@@ -129,40 +134,45 @@ func define(environment *Environment, term Term) Term {
 	var variable Symbol
 	var value Term
 
-	switch v := car(term).(type) {
+	terms := term.(Tuple)
+
+	switch v := terms[0].(type) {
 	case Symbol:
 		variable = v
-		value = car(cdr(term))
+		value = terms[1]
+	case Tuple:
+		variable = v[0].(Symbol)
+		parameters := v[1]
+		body := terms[1]
+		value = lambda(environment, Tuple([]Term{parameters, body}))
 	default:
-		variable = car(car(term)).(Symbol)
-		parameters := cdr(car(term))
-		body := cdr(term)
-		value = lambda(environment, &Pair{parameters, body})
+		panic("unexpected type")
+
 	}
 	environment.Define(variable, value)
 	return nil
 }
 
 func set(environment *Environment, term Term) Term {
-	variable := car(term)
-	value := car(cdr(term))
+	terms := term.(Tuple)
+	variable := terms[0]
+	value := terms[1]
 	environment.Set(variable.(Symbol), value)
 	return nil
 }
 
 func begin(environment *Environment, term Term) Term {
 	var result Term
-	for expressions := term; expressions != nil; expressions = cdr(expressions) {
-		expression := car(expressions)
+	for _, expression := range(term.(Tuple)) {
 		result = environment.evaluate(expression)
 	}
 	return result
 }
 
-func and(environment *Environment, tests Term) Term {
-	for exp := tests.(*Pair); exp != nil; exp, _ = exp.cdr.(*Pair) {
-		first_exp := exp.car
-		result := environment.evaluate(first_exp).(Boolean)
+ func and(environment *Environment, term Term) Term {
+	terms := term.(Tuple)
+	for _, exp := range(terms) {
+		result := environment.evaluate(exp).(Boolean)
 		if !result {
 			return result
 		}
@@ -170,10 +180,10 @@ func and(environment *Environment, tests Term) Term {
 	return Boolean(true)
 }
 
-func or(environment *Environment, tests Term) Term {
-	for exp := tests.(*Pair); exp != nil; exp, _ = exp.cdr.(*Pair) {
-		first_exp := exp.car
-		result := environment.evaluate(first_exp).(Boolean)
+func or(environment *Environment, term Term) Term {
+	terms := term.(Tuple)
+	for _, exp := range(terms) {
+		result := environment.evaluate(exp).(Boolean)
 		if result {
 			return result
 		}
@@ -182,18 +192,19 @@ func or(environment *Environment, tests Term) Term {
 }
 
 func ifPrimitive(environment *Environment, term Term) Term {
-	if_predicate := car(term)
+	terms := term.(Tuple)
+	if_predicate := terms[0]
 	if environment.evaluate(if_predicate).(Boolean) {
-		if_consequent := car(cdr(term))
+		if_consequent := terms[1]
  		term = if_consequent
  	} else {
  		var if_alternative Term
- 		if cdr(cdr(term)) == nil {
+		if len(terms) < 3 {
  			if_alternative = Boolean(false)
  		} else {
- 			if_alternative = car(cdr(cdr(term)))
+			if_alternative = terms[2]
  		}
- 		term = if_alternative
+		term = if_alternative
  	}
  	return environment.evaluate(term)
 }
@@ -203,21 +214,25 @@ func apply(environment *Environment, term Term) Term {
 }
 
 func evalPrimitive(environment *Environment, term Term) Term {
-	return environment.evaluate(car(term))
+	return environment.evaluate(term.(Tuple)[0])
 }
 
 func let(environment *Environment, term Term) Term {
-	bindings := car(term)
-	body := cdr(term)
+	terms := term.(Tuple)
+	bindings := terms[0]
+	body := terms[1]
 
-	binding_parameter := func(binding Term) Term { return car(binding) }
-	parameters := list_from(bindings, binding_parameter)
+	var parameters, arguments Tuple
+	for _, binding := range(bindings.(Tuple)) {
+		b := binding.(Tuple)
+		parameters = append(parameters, b[0])
+		arguments = append(arguments, b[1])
+	}
 
-	binding_arguments := func(binding Term) Term { return car(cdr(binding)) }
-	arguments := list_from(bindings, binding_arguments)
+	parameters = Tuple([]Term{parameters}) // TODO: ??
 
-	operator := lambda(environment, &Pair{parameters, body})
+	operator := lambda(environment, Tuple([]Term{parameters, body}))
 	operands := arguments
 
-	return Application{&Pair{operator, operands}}
+	return Application{Tuple([]Term{operator, operands})}
 }

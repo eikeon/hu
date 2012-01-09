@@ -33,23 +33,23 @@ func read(lexer *lexer) Term {
 			num.SetString(token.val, 10)
 			return &Number{num}
 		case itemOpenParenthesis:
-			pair := read_pair(lexer)
+			tuple := read_tuple(lexer)
 			next := lexer.nextItem()
 			if next.typ != itemCloseParenthesis {
 				panic("expected )")
 			}
-			return pair
+			return tuple
 		case itemCloseParenthesis:
 		case itemOpenCurlyBrace:
-			expression := read_pair(lexer)
+			expression := read_tuple(lexer)
 			next := lexer.nextItem()
 			if next.typ != itemCloseCurlyBrace {
 				panic("expected }")
 			}
 			return Application{expression}
 		case itemCloseCurlyBrace:
-		case itemQuote:
-			return &Pair{Symbol("quote"), read(lexer)}
+		// case itemQuote:
+		// 	return &Tuple{Symbol("quote"), read(lexer)}
 		case itemEOF:
 			return nil
 		case itemPunctuation:
@@ -64,34 +64,19 @@ func read(lexer *lexer) Term {
 	panic("unexpectedly reached this point")
 }
 
-func read_pair(lexer *lexer) Term {
-	var car_term, cdr_term Term
-	for {
-		switch token := lexer.peekItem(); token.typ {
-		case itemCloseParenthesis, itemCloseCurlyBrace:
-			return nil
-		case itemSpace:
-			lexer.nextItem()
-			break
-		default:
-			car_term = read(lexer)
-			goto done_car
-		}
+func read_tuple(lexer *lexer) Term {
+	var terms []Term
+next:
+	switch token := lexer.peekItem(); token.typ {
+	case itemCloseParenthesis, itemCloseCurlyBrace:
+		return Tuple(terms)
+	case itemSpace:
+		lexer.nextItem()
+		goto next
+	default:
+		term := read(lexer)
+		terms = append(terms, term)
+		goto next
 	}
-done_car:
-	for {
-		switch token := lexer.peekItem(); token.typ {
-		case itemSpace:
-			lexer.nextItem()
-		case itemPeriod:
-			lexer.nextItem()
-			cdr_term = read(lexer)
-			goto done_cdr
-		default:
-			cdr_term = read_pair(lexer)
-			goto done_cdr
-		}
-	}
-done_cdr:
-	return &Pair{car_term, cdr_term}
+	panic("")
 }
