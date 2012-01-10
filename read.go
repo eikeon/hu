@@ -13,7 +13,7 @@ func Read(in io.RuneScanner) (result Term) {
 		case Term:
 			result = x
 		case interface{}:
-      			result = Error(fmt.Sprintf("%v", x))
+			result = Error(fmt.Sprintf("%v", x))
 		}
 	}()
 	lexer := lex("", in)

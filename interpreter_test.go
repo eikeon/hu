@@ -20,7 +20,7 @@ func is_eq_number(number int64) func(Term) bool {
 
 func is_eq(expected Term) func(Term) bool {
 	return func(result Term) bool {
-		return result==expected
+		return result == expected
 	}
 }
 

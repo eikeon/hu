@@ -4,7 +4,6 @@ import (
 	"big"
 )
 
-
 func lambda(environment *Environment, term Term) Term {
 	terms := term.(Tuple)
 	parameters := Tuple([]Term{nil, terms[0]})
@@ -22,7 +21,7 @@ func operator(environment *Environment, term Term) Term {
 
 func add_numbers(environment *Environment, term Term) Term {
 	var result = big.NewInt(0)
-	for _, argument := range(term.(Tuple)) {
+	for _, argument := range term.(Tuple) {
 		num := environment.evaluate(argument).(*Number)
 		result.Add(result, num.value)
 	}
@@ -32,7 +31,7 @@ func add_numbers(environment *Environment, term Term) Term {
 func add_numbersP(environment *Environment) Term {
 	var result = big.NewInt(0)
 	numbers := environment.Get(Symbol("numbers"))
-	for _, number := range(numbers.(Tuple)) {
+	for _, number := range numbers.(Tuple) {
 		num := environment.evaluate(number).(*Number)
 		result.Add(result, num.value)
 	}
@@ -41,8 +40,8 @@ func add_numbersP(environment *Environment) Term {
 
 func add_lists(environment *Environment, arguments Term) Term {
 	var terms []Term
-	for _, argument := range(arguments.(Tuple)) {
-		for _, term := range(environment.evaluate(argument).(Tuple)) {
+	for _, argument := range arguments.(Tuple) {
+		for _, term := range environment.evaluate(argument).(Tuple) {
 			terms = append(terms, term)
 		}
 	}
@@ -54,7 +53,7 @@ func subtract_proc(environment *Environment, term Term) Term {
 	// TODO: implement uniary negation
 	num := environment.evaluate(terms[0]).(*Number)
 	result := big.NewInt(0).Set(num.value)
-	for _, argument := range(terms[1:]) {
+	for _, argument := range terms[1:] {
 		num = environment.evaluate(argument).(*Number)
 		result.Sub(result, num.value)
 	}
@@ -64,14 +63,14 @@ func subtract_proc(environment *Environment, term Term) Term {
 func multiply_proc(environment *Environment, term Term) Term {
 	terms := term.(Tuple)
 	var result = big.NewInt(1)
-	for _, argument := range(terms) {
+	for _, argument := range terms {
 		result.Mul(result, argument.(*Number).value)
 	}
 	return &Number{result}
 }
 
 func quotient_proc(environment *Environment, term Term) Term {
-        terms := term.(Tuple)
+	terms := term.(Tuple)
 	a := environment.evaluate(terms[0]).(*Number)
 	b := environment.evaluate(terms[1]).(*Number)
 	result := big.NewInt(0).Quo(a.value, b.value)
@@ -79,7 +78,7 @@ func quotient_proc(environment *Environment, term Term) Term {
 }
 
 func remainder_proc(environment *Environment, term Term) Term {
-        terms := term.(Tuple)
+	terms := term.(Tuple)
 	a := environment.evaluate(terms[0]).(*Number)
 	b := environment.evaluate(terms[1]).(*Number)
 	result := big.NewInt(0).Rem(a.value, b.value)
@@ -89,7 +88,7 @@ func remainder_proc(environment *Environment, term Term) Term {
 func is_number_equal_proc(environment *Environment, term Term) Term {
 	terms := term.(Tuple)
 	value := terms[0].(*Number).value
-	for _, argument := range(terms[1:]) {
+	for _, argument := range terms[1:] {
 		num := environment.evaluate(argument).(*Number)
 		if value.Cmp(num.value) != 0 {
 			return Boolean(false)
@@ -102,7 +101,7 @@ func is_less_than_proc(environment *Environment, term Term) Term {
 	terms := term.(Tuple)
 	num := environment.evaluate(terms[0])
 	previous := num.(*Number).value
-	for _, argument := range(terms[1:]) {
+	for _, argument := range terms[1:] {
 		num = environment.evaluate(argument)
 		next := num.(*Number).value
 		if previous.Cmp(next) == -1 {
@@ -118,7 +117,7 @@ func is_greater_than_proc(environment *Environment, term Term) Term {
 	terms := term.(Tuple)
 	num := environment.evaluate(terms[0])
 	previous := num.(*Number).value
-	for _, argument := range(terms[1:]) {
+	for _, argument := range terms[1:] {
 		num = environment.evaluate(argument)
 		next := num.(*Number).value
 		if previous.Cmp(next) == 1 {
@@ -163,15 +162,15 @@ func set(environment *Environment, term Term) Term {
 
 func begin(environment *Environment, term Term) Term {
 	var result Term
-	for _, expression := range(term.(Tuple)) {
+	for _, expression := range term.(Tuple) {
 		result = environment.evaluate(expression)
 	}
 	return result
 }
 
- func and(environment *Environment, term Term) Term {
+func and(environment *Environment, term Term) Term {
 	terms := term.(Tuple)
-	for _, exp := range(terms) {
+	for _, exp := range terms {
 		result := environment.evaluate(exp).(Boolean)
 		if !result {
 			return result
@@ -182,7 +181,7 @@ func begin(environment *Environment, term Term) Term {
 
 func or(environment *Environment, term Term) Term {
 	terms := term.(Tuple)
-	for _, exp := range(terms) {
+	for _, exp := range terms {
 		result := environment.evaluate(exp).(Boolean)
 		if result {
 			return result
@@ -196,17 +195,17 @@ func ifPrimitive(environment *Environment, term Term) Term {
 	if_predicate := terms[0]
 	if environment.evaluate(if_predicate).(Boolean) {
 		if_consequent := terms[1]
- 		term = if_consequent
- 	} else {
- 		var if_alternative Term
+		term = if_consequent
+	} else {
+		var if_alternative Term
 		if len(terms) < 3 {
- 			if_alternative = Boolean(false)
- 		} else {
+			if_alternative = Boolean(false)
+		} else {
 			if_alternative = terms[2]
- 		}
+		}
 		term = if_alternative
- 	}
- 	return environment.evaluate(term)
+	}
+	return environment.evaluate(term)
 }
 
 func apply(environment *Environment, term Term) Term {
@@ -223,7 +222,7 @@ func let(environment *Environment, term Term) Term {
 	body := terms[1]
 
 	var parameters, arguments Tuple
-	for _, binding := range(bindings.(Tuple)) {
+	for _, binding := range bindings.(Tuple) {
 		b := binding.(Tuple)
 		parameters = append(parameters, b[0])
 		arguments = append(arguments, b[1])

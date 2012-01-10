@@ -24,9 +24,9 @@ type Boolean bool
 
 func (b Boolean) String() (result string) {
 	if b {
-		result	= "true"
+		result = "true"
 	} else {
-		result	= "false"
+		result = "false"
 	}
 	return
 }
@@ -111,7 +111,7 @@ func (application Application) String() string {
 
 func (application Application) Reduce(environment *Environment) Term {
 	terms := application.term.(Tuple)
-	for i, term := range(terms) {
+	for i, term := range terms {
 		switch operator := environment.evaluate(term).(type) {
 		case Operator:
 			var operands Term
@@ -131,7 +131,7 @@ func (application Application) Reduce(environment *Environment) Term {
 
 type Abstraction struct {
 	parameters Term
-	term Term
+	term       Term
 }
 
 func (a Abstraction) apply(environment *Environment, values Term) Term {
@@ -145,7 +145,7 @@ func (abstraction Abstraction) String() string {
 }
 
 type Closure struct {
-	term Term
+	term        Term
 	environment *Environment
 }
 
@@ -164,7 +164,7 @@ func (error Error) String() string {
 }
 
 type UnboundVariableError struct {
-	variable Term
+	variable  Term
 	operation string
 }
 
@@ -205,10 +205,10 @@ func (environment *Environment) Extend(variables, values Term) {
 	switch vars := variables.(type) {
 	case Tuple:
 		vals := values.(Tuple)
-		if len(vals)!=len(vars) {
+		if len(vals) != len(vars) {
 			fmt.Println("type mismatch:", vals, vars)
 		}
-		for i, v := range(vars) {
+		for i, v := range vars {
 			val := vals[i]
 			environment.Extend(v, val)
 		}
