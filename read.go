@@ -2,7 +2,7 @@ package hu
 
 import (
 	"io"
-	"big"
+	"math/big"
 	"strings"
 	"fmt"
 )

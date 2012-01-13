@@ -3,7 +3,7 @@ package hu
 import (
 	"fmt"
 	"bytes"
-	"big"
+	"math/big"
 )
 
 type Term interface {
