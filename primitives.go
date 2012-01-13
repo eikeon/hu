@@ -1,7 +1,7 @@
 package hu
 
 import (
-	"big"
+	"math/big"
 )
 
 func lambda(environment *Environment, term Term) Term {

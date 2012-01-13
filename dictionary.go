@@ -1,13 +1,13 @@
 package hu
 
 import (
-	"http"
-	"log"
-	"regexp"
-	"io/ioutil"
-	"path"
 	"encoding/base64"
-	"url"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"net/url"
+	"path"
+	"regexp"
 )
 
 type TermTmp struct {

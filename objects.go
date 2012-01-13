@@ -1,9 +1,9 @@
 package hu
 
 import (
-	"fmt"
 	"bytes"
-	"big"
+	"fmt"
+	"math/big"
 )
 
 type Term interface {
@@ -11,6 +11,7 @@ type Term interface {
 }
 
 type Reducible interface {
+	Term
 	Reduce(*Environment) Term
 }
 
@@ -78,6 +79,7 @@ func (tuple Tuple) String() string {
 }
 
 type Operator interface {
+	Term
 	apply(*Environment, Term) Term
 }
 
@@ -194,7 +196,7 @@ func (environment *Environment) NewChildEnvironment() *Environment {
 }
 
 func (environment *Environment) Closure(term Term) Term {
-	switch v := term.(type) {
+	switch term.(type) {
 	case Application:
 		return Closure{term, environment}
 	}

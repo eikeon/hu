@@ -1,10 +1,10 @@
 package hu
 
 import (
-	"io"
-	"big"
-	"strings"
 	"fmt"
+	"io"
+	"math/big"
+	"strings"
 )
 
 func Read(in io.RuneScanner) (result Term) {
@@ -50,15 +50,21 @@ func read(lexer *lexer) Term {
 		case itemCloseCurlyBrace:
 		// case itemQuote:
 		// 	return &Tuple{Symbol("quote"), read(lexer)}
+		case itemPageBreak:
+			lexer.backupItem()
+			return nil
 		case itemEOF:
+			lexer.backupItem()
 			return nil
 		case itemPunctuation:
 		case itemNewline:
 		case itemSpace:
 		case itemError:
-			panic(token.val)
+			return Symbol("?")
+			//panic(token.val)
 		default:
-			panic(token.typ)
+			return Symbol("?")
+			//panic(token.typ)
 		}
 	}
 	panic("unexpectedly reached this point")

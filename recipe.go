@@ -7,10 +7,10 @@
 package hu
 
 import (
-	"fmt"
-	"os"
-	"runtime"
 	"bytes"
+
+	"fmt"
+	"runtime"
 	"strings"
 )
 
@@ -106,7 +106,7 @@ func (t *Tree) errorf(format string, args ...interface{}) {
 }
 
 // error terminates processing.
-func (t *Tree) error(err os.Error) {
+func (t *Tree) error(err error) {
 	t.errorf("%s", err)
 }
 
@@ -125,7 +125,7 @@ func (t *Tree) unexpected(token item, context string) {
 }
 
 // recover is the handler that turns panics into returns from the top level of Parse.
-func (t *Tree) recover(errp *os.Error) {
+func (t *Tree) recover(errp *error) {
 	e := recover()
 	if e != nil {
 		if _, ok := e.(runtime.Error); ok {
@@ -134,7 +134,7 @@ func (t *Tree) recover(errp *os.Error) {
 		if t != nil {
 			t.stopParse()
 		}
-		*errp = e.(os.Error)
+		*errp = e.(error)
 	}
 	return
 }
@@ -156,7 +156,7 @@ func (t *Tree) stopParse() {
 
 // Parse parses the template definition string to construct an internal
 // representation of the template for execution.
-func (t *Tree) Parse(s string, funcs ...map[string]interface{}) (tree *Tree, err os.Error) {
+func (t *Tree) Parse(s string, funcs ...map[string]interface{}) (tree *Tree, err error) {
 	defer t.recover(&err)
 	t.startParse(funcs, lex(t.Name, strings.NewReader(s)))
 	t.parse(true)
@@ -203,14 +203,12 @@ func (t *Tree) parse(toEOF bool) { //(next Node) {
 func (t *Tree) parseName() (result string) {
 	for {
 		switch token := t.next(); token.typ {
-		case itemWord, itemPunctuation:
-			result += token.val
 		case itemNewline:
 			return
 		case itemError:
 			t.errorf("lex: %s in title", token.val)
 		default:
-			t.unexpected(token, "title")
+			result += token.val
 		}
 	}
 	return
@@ -219,14 +217,13 @@ func (t *Tree) parseName() (result string) {
 func (t *Tree) parseDescription() (result string) {
 	for {
 		switch token := t.next(); token.typ {
-		case itemWord, itemPunctuation, itemString, itemNumber:
-			result += token.val
 		case itemNewline:
 			return
 		case itemError:
-			t.errorf("lex: %s in title", token.val)
+			fmt.Println("??", token.typ)
+			t.errorf("lex: %s in description", token.val)
 		default:
-			t.unexpected(token, "description")
+			result += token.val
 		}
 	}
 	return
@@ -235,14 +232,12 @@ func (t *Tree) parseDescription() (result string) {
 func (t *Tree) parseIngredient() (result string) {
 	for {
 		switch token := t.next(); token.typ {
-		case itemNumber, itemWord, itemPunctuation:
-			result += token.val
 		case itemNewline:
 			return
 		case itemError:
 			t.errorf("lex: %s in ingredient", token.val)
 		default:
-			t.unexpected(token, "ingredient")
+			result += token.val
 		}
 	}
 	return
@@ -251,14 +246,12 @@ func (t *Tree) parseIngredient() (result string) {
 func (t *Tree) parseDirection() (result string) {
 	for {
 		switch token := t.next(); token.typ {
-		case itemNumber, itemWord, itemPunctuation:
-			result += token.val
 		case itemNewline, itemEOF:
 			return
 		case itemError:
 			t.errorf("lex: %s in direction", token.val)
 		default:
-			t.unexpected(token, "direction")
+			result += token.val
 		}
 	}
 	return
@@ -279,8 +272,6 @@ func (t *Tree) parseAttributes() {
 			} else {
 				value += token.val
 			}
-		case itemString, itemPunctuation, itemNumber:
-			value += token.val
 		case itemNewline:
 			switch key {
 			case "Photo":
@@ -298,8 +289,99 @@ func (t *Tree) parseAttributes() {
 		case itemError:
 			t.errorf("lex: %s in attribute", token.val)
 		default:
-			t.unexpected(token, "attribute")
+			value += token.val
 		}
 	}
 	return
+}
+
+type Line []Term
+
+func (line Line) String() string {
+	return fmt.Sprintf("Line(%v)", []Term(line))
+}
+
+type Section []Term
+
+func (section Section) String() string {
+	return fmt.Sprintf("Section(%v)", []Term(section))
+}
+
+type Page []Term
+
+func (page Page) String() string {
+	return fmt.Sprintf("Page(%v)", []Term(page))
+}
+
+type Document []Term
+
+func (document Document) String() string {
+	return fmt.Sprintf("Document(%v)", []Term(document))
+}
+
+
+func read_line(lexer *lexer) Term {
+	var terms []Term
+next:
+	switch token := lexer.peekItem(); token.typ {
+	case itemNewline:
+		lexer.nextItem()
+		return Line(terms)
+	case itemPageBreak, itemEOF:
+		return Line(terms)
+	default:
+		term := read(lexer)
+		terms = append(terms, term)
+		goto next
+	}
+	panic("")
+}
+
+func read_section(lexer *lexer) Term {
+	var terms []Term
+next:
+	switch token := lexer.peekItem(); token.typ {
+	case itemNewline:
+		lexer.nextItem()
+		return Section(terms)
+	case itemPageBreak, itemEOF:
+		return Section(terms)
+	default:
+		term := read_line(lexer)
+		terms = append(terms, term)
+		goto next
+	}
+	panic("")
+}
+
+
+func read_page(lexer *lexer) Term {
+	var terms []Term
+next:
+	switch token := lexer.peekItem(); token.typ {
+	case itemPageBreak, itemEOF:
+		return Page(terms)
+	default:
+		term := read_section(lexer)
+		terms = append(terms, term)
+		goto next
+	}
+	panic("")
+}
+
+func read_pages(lexer *lexer) Term {
+	var pages []Term
+next:
+	switch token := lexer.peekItem(); token.typ {
+	case itemPageBreak:
+		lexer.nextItem()
+		goto next
+	case itemEOF:
+		return Document(pages)
+	default:
+		page := read_page(lexer)
+		pages = append(pages, page)
+		goto next
+	}
+	panic("")
 }

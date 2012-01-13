@@ -48,6 +48,7 @@ const (
 	itemQuote
 	itemSpace
 	itemPeriod
+	itemPageBreak
 )
 
 // Make the types prettyprint.
@@ -66,6 +67,7 @@ var itemName = map[itemType]string{
 	itemQuote:            "'",
 	itemSpace:            "space",
 	itemPeriod:           "period",
+	itemPageBreak:           "page break",
 }
 
 func (i itemType) String() string {
@@ -76,7 +78,7 @@ func (i itemType) String() string {
 	return s
 }
 
-const eof = -1
+const eof = rune(-1)
 
 // stateFn represents the state of the scanner as a function that returns the next state.
 type stateFn func(*lexer) stateFn
@@ -94,7 +96,7 @@ type lexer struct {
 }
 
 // next returns the next rune in the input.
-func (l *lexer) next() (rune int) {
+func (l *lexer) next() (rune rune) {
 	rune, size, err := l.input.ReadRune()
 	if err == nil {
 		l.width, _ = l.current.WriteRune(rune)
@@ -110,7 +112,7 @@ func (l *lexer) next() (rune int) {
 }
 
 // peek returns but does not consume the next rune in the input.
-func (l *lexer) peek() int {
+func (l *lexer) peek() rune {
 	rune := l.next()
 	l.backup()
 	return rune
@@ -225,6 +227,8 @@ func lexItem(l *lexer) stateFn {
 		} else if '0' <= rr && rr <= '9' {
 			return lexNumber
 		} else {
+			l.emit(itemPunctuation)
+			return lexItem
 		}
 	case r == '+' || r == '-' || ('0' <= r && r <= '9'):
 		l.backup()
@@ -241,17 +245,13 @@ func lexItem(l *lexer) stateFn {
 
 // lexWord scans an alphanumeric
 func lexWord(l *lexer) stateFn {
-Loop:
-	for {
-		switch r := l.next(); {
-		case isPunctuation(r):
-			l.backup()
-			l.emit(itemWord)
-			break Loop
-		default:
-			//
-		}
-
+top:
+	switch r := l.next(); {
+	case isPunctuation(r):
+		l.backup()
+		l.emit(itemWord)
+	default:
+		goto top
 	}
 	return lexItem
 }
@@ -274,10 +274,13 @@ func lexPunctuation(l *lexer) stateFn {
 		l.emit(itemSpace)
 	case '.':
 		l.emit(itemPeriod)
-	case ',', ':', ';', '!', '\f':
+	case '\f':
+		l.emit(itemPageBreak)
+	case ',', ':', ';', '!', '-':
 		l.emit(itemPunctuation)
 	default:
-		panic("???")
+		l.emit(itemPunctuation)
+		//panic("???")
 	}
 	return lexItem
 }
@@ -344,9 +347,9 @@ Loop:
 }
 
 // isPunctuation reports whether r is a punctuation character.
-func isPunctuation(r int) bool {
+func isPunctuation(r rune) bool {
 	switch r {
-	case ' ', '\t', '\n', '\r', '\f', '(', ')', '{', '}', '\'', eof:
+	case ' ', '\t', '\n', '\r', '\f', '(', ')', '{', '}', '\'', '-', eof:
 		return true
 	case '.', '!', ',', ':':
 		return true
@@ -355,6 +358,6 @@ func isPunctuation(r int) bool {
 }
 
 // isAlphaNumeric reports whether r is an alphabetic, digit, or underscore.
-func isAlphaNumeric(r int) bool {
+func isAlphaNumeric(r rune) bool {
 	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r)
 }

@@ -1,9 +1,9 @@
 package hu
 
 import (
-	"testing"
+	"math/big"
 	"strings"
-	"big"
+	"testing"
 )
 
 type testCase struct {

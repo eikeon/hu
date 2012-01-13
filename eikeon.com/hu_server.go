@@ -1,16 +1,15 @@
 package main
 
 import (
+	"flag"
+	"fmt"
+	"log"
+	"net/http"
 	"os"
 	"path"
-	"flag"
-	"http"
-	"log"
 	"strings"
-	"fmt"
 	"time"
 )
-
 
 func NotFoundHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Cache-Control", "max-age=10, must-revalidate")
@@ -25,10 +24,11 @@ func setCacheControl(w http.ResponseWriter, req *http.Request) {
 	if req.Header["X-Draft"] != nil {
 		w.Header().Set("Cache-Control", "max-age=1, must-revalidate")
 	} else {
-		now := time.UTC()
-		d := time.Time{2011, 4, 11, 3, 0, 0, 0, time.Monday, 0, "UTC"}
+		now := time.Now().UTC()
+		//d := time.Time{2011, 4, 11, 3, 0, 0, 0, time.Monday, 0, "UTC"}
+		d := time.Date(2011, 4, 11, 3, 0, 0, 0, time.UTC)
 		TTL := int64(86400)
-		ttl := TTL - (now.Seconds()-d.Seconds())%TTL  // shift
+		ttl := TTL - (now.Unix()-d.Unix())%TTL // shift
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", ttl))
 	}
 }
@@ -118,7 +118,7 @@ func main() {
 	http.Handle("/recipe/", http.HandlerFunc(RecipeHandler))
 	http.Handle("/recipe/seaweed_and_cabbage_saute/",
 		http.RedirectHandler("/recipe/seaweed_and_cabbage_sauté/",
-		http.StatusMovedPermanently))
+			http.StatusMovedPermanently))
 
 	err := http.ListenAndServe(*Address, nil)
 	if err != nil {
