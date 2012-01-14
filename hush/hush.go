@@ -1,7 +1,7 @@
 package main
 
 import (
-	"hu"
+	"github.com/eikeon/hu"
 	"fmt"
 	"os"
 	"bufio"
