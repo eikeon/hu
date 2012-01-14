@@ -319,7 +319,6 @@ func (document Document) String() string {
 	return fmt.Sprintf("Document(%v)", []Term(document))
 }
 
-
 func read_line(lexer *lexer) Term {
 	var terms []Term
 next:
@@ -353,7 +352,6 @@ next:
 	}
 	panic("")
 }
-
 
 func read_page(lexer *lexer) Term {
 	var terms []Term

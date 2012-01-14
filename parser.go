@@ -1,8 +1,8 @@
 package hu
 
 import (
-	"io"
 	"fmt"
+	"io"
 )
 
 type production struct {

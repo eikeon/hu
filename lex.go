@@ -5,11 +5,11 @@
 package hu
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"strings"
 	"unicode"
-	"io"
-	"bytes"
 )
 
 // item represents a token or text string returned from the scanner.
@@ -67,7 +67,7 @@ var itemName = map[itemType]string{
 	itemQuote:            "'",
 	itemSpace:            "space",
 	itemPeriod:           "period",
-	itemPageBreak:           "page break",
+	itemPageBreak:        "page break",
 }
 
 func (i itemType) String() string {
