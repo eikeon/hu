@@ -137,6 +137,12 @@ next:
  */
 
 func read_section(lexer *lexer) Term {
+	// skip following space
+	item := lexer.peekItem()
+	if item.val == " " {
+		lexer.nextItem()
+	}
+
 	var terms []Term
 next:
 	switch token := lexer.peekItem(); token.typ {
