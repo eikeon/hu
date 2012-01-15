@@ -84,7 +84,7 @@ type Line []Term
 
 func (line Line) String() string {
 	var terms []string
-	for _, term := range(line) {
+	for _, term := range line {
 		terms = append(terms, term.String())
 	}
 	return strings.Join(terms, "")
@@ -95,7 +95,7 @@ type Part []Term
 
 func (part Part) String() string {
 	var terms []string
-	for _, term := range(part) {
+	for _, term := range part {
 		terms = append(terms, term.String())
 	}
 	return strings.Join(terms, "")

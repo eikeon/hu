@@ -69,7 +69,7 @@ var itemName = map[itemType]string{
 	itemSpace:            "space",
 	itemPeriod:           "period",
 	itemPageBreak:        "page break",
-        itemSection:          "§",
+	itemSection:          "§",
 }
 
 func (i itemType) String() string {

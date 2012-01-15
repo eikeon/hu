@@ -134,7 +134,7 @@ next:
  Use blank lines to separate items in sections
  Use \t for nesting (for example subsections)
  Use :\n\t as continuations for named items
- */
+*/
 
 func read_section(lexer *lexer) Term {
 	// skip following space
