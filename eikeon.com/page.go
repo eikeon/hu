@@ -5,8 +5,6 @@ import (
 	"crypto/md5"
 	"fmt"
 	"net/http"
-
-	"hu"
 	"io"
 	"io/ioutil"
 	"log"
@@ -28,8 +26,8 @@ type page struct {
 	Title      string
 	Stylesheet string
 	NotFound   bool
-	Recipes    []*hu.Recipe
-	Recipe     *hu.Recipe
+	Recipes    []*Recipe
+	Recipe     *Recipe
 	// TODO: add baseURL and use URL.ParseURL to resolve relative URLs such as the photo URLs.
 }
 

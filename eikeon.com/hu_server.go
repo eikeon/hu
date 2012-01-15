@@ -92,11 +92,12 @@ func CanonicalHostHandler(w http.ResponseWriter, req *http.Request) {
 func StaticHandler(w http.ResponseWriter, req *http.Request) {
 	var filename = path.Join(*StaticRoot, req.URL.Path)
 	f, err := os.Open(filename)
-	defer f.Close()
 	if err != nil {
 		log.Print(err)
 		NotFoundHandler(w, req)
 		return
+	} else {
+		defer f.Close()
 	}
 
 	setCacheControl(w, req)
