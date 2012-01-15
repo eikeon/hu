@@ -56,7 +56,11 @@ func read(lexer *lexer) Term {
 			return nil
 		case itemEOF:
 			lexer.backupItem()
-			return Tuple(terms)
+			if terms == nil {
+				return nil
+			} else {
+				return Tuple(terms)
+			}
 		case itemPunctuation:
 			return Symbol(token.val)
 		case itemNewline:
