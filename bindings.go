@@ -20,8 +20,8 @@ func AddDefaultBindings(environment *Environment) {
 	environment.AddPrimitive("-", subtract_proc)
 
 	environment.AddPrimitive("*", multiply_proc)
-	environment.AddPrimitive("quotient", quotient_proc)
-	environment.AddPrimitive("remainder", remainder_proc)
+	//environment.AddPrimitive("quotient", quotient_proc)
+	//environment.AddPrimitive("remainder", remainder_proc)
 
 	environment.AddPrimitive("define", define)
 	environment.AddPrimitive("set", set)

@@ -35,11 +35,11 @@ func (b Boolean) String() (result string) {
 }
 
 type Number struct {
-	value *big.Int
+	value *big.Rat
 }
 
 func (n *Number) String() string {
-	return n.value.String()
+	return n.value.RatString()
 }
 
 type Symbol string

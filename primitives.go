@@ -20,7 +20,7 @@ func operator(environment *Environment, term Term) Term {
 }
 
 func add_numbers(environment *Environment, term Term) Term {
-	var result = big.NewInt(0)
+	var result = big.NewRat(0, 1)
 	for _, argument := range term.(Tuple) {
 		num := environment.evaluate(argument).(*Number)
 		result.Add(result, num.value)
@@ -29,7 +29,7 @@ func add_numbers(environment *Environment, term Term) Term {
 }
 
 func add_numbersP(environment *Environment) Term {
-	var result = big.NewInt(0)
+	var result = big.NewRat(0, 1)
 	numbers := environment.Get(Symbol("numbers"))
 	for _, number := range numbers.(Tuple) {
 		num := environment.evaluate(number).(*Number)
@@ -52,7 +52,7 @@ func subtract_proc(environment *Environment, term Term) Term {
 	terms := term.(Tuple)
 	// TODO: implement uniary negation
 	num := environment.evaluate(terms[0]).(*Number)
-	result := big.NewInt(0).Set(num.value)
+	result := big.NewRat(0, 1).Set(num.value)
 	for _, argument := range terms[1:] {
 		num = environment.evaluate(argument).(*Number)
 		result.Sub(result, num.value)
@@ -62,7 +62,7 @@ func subtract_proc(environment *Environment, term Term) Term {
 
 func multiply_proc(environment *Environment, term Term) Term {
 	terms := term.(Tuple)
-	var result = big.NewInt(1)
+	var result = big.NewRat(1, 1)
 	for _, argument := range terms {
 		result.Mul(result, argument.(*Number).value)
 	}
@@ -73,17 +73,17 @@ func quotient_proc(environment *Environment, term Term) Term {
 	terms := term.(Tuple)
 	a := environment.evaluate(terms[0]).(*Number)
 	b := environment.evaluate(terms[1]).(*Number)
-	result := big.NewInt(0).Quo(a.value, b.value)
+	result := big.NewRat(0, 1).Quo(a.value, b.value)
 	return &Number{result}
 }
 
-func remainder_proc(environment *Environment, term Term) Term {
-	terms := term.(Tuple)
-	a := environment.evaluate(terms[0]).(*Number)
-	b := environment.evaluate(terms[1]).(*Number)
-	result := big.NewInt(0).Rem(a.value, b.value)
-	return &Number{result}
-}
+// func remainder_proc(environment *Environment, term Term) Term {
+// 	terms := term.(Tuple)
+// 	a := environment.evaluate(terms[0]).(*Number)
+// 	b := environment.evaluate(terms[1]).(*Number)
+// 	result := big.NewRat(0, 1).Rem(a.value, b.value)
+// 	return &Number{result}
+// }
 
 func is_number_equal_proc(environment *Environment, term Term) Term {
 	terms := term.(Tuple)

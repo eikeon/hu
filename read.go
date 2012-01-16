@@ -30,8 +30,8 @@ func read(lexer *lexer) Term {
 		case itemString:
 			return String(strings.Trim(token.val, string("\"")))
 		case itemNumber:
-			num := big.NewInt(0)
-			num.SetString(token.val, 10)
+			num := big.NewRat(0, 1)
+			num.SetString(token.val) //, 10)
 			return &Number{num}
 		case itemOpenParenthesis:
 			tuple := read_tuple(lexer)
