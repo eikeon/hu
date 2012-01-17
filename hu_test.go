@@ -1,9 +1,9 @@
 package hu
 
 import (
-	"testing"
-	"strings"
 	"fmt"
+	"strings"
+	"testing"
 )
 
 var ingredients = []string{

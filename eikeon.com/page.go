@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"crypto/md5"
 	"fmt"
-	"net/http"
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"text/template"
 )
 

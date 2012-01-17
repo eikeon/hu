@@ -107,11 +107,29 @@ func StaticHandler(w http.ResponseWriter, req *http.Request) {
 
 var Address *string
 var StaticRoot *string
+var RecipesLocation *string
 
 func main() {
 	Address = flag.String("address", ":9999", "http service address")
 	StaticRoot = flag.String("root", "static", "...")
+	RecipesLocation = flag.String("recipes", "recipes", "location of recipes")
 	flag.Parse()
+
+	if strings.Contains(*RecipesLocation, "://") {
+		r, err := http.Get(*RecipesLocation)
+		if err == nil {
+			initRecipes(r.Body)
+		} else {
+			log.Print(err)
+		}
+	} else {
+		f, err := os.Open(*RecipesLocation)
+		if err == nil {
+			initRecipes(f)
+		} else {
+			log.Print(err)
+		}
+	}
 
 	http.Handle("eikeon.com/", http.HandlerFunc(CanonicalHostHandler))
 	http.Handle("/", http.HandlerFunc(PageHandler))

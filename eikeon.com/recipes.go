@@ -1,14 +1,13 @@
 package main
 
 import (
-	"fmt"
-	"bytes"
-	"os"
-	"log"
 	"bufio"
+	"bytes"
+	"fmt"
+	"github.com/eikeon/hu"
+	"io"
 	"sort"
 	"strings"
-	"github.com/eikeon/hu"
 )
 
 type Recipe struct {
@@ -42,14 +41,9 @@ func (r Recipe) String() string {
 var Recipes = map[string]*Recipe{}
 var Recipe_list RecipeArray
 
-func init() {
-	f, err := os.Open("recipes")
-	if err != nil {
-		log.Print("open", err)
-		return
-	}
-	reader := bufio.NewReader(f)
-	expression := hu.Read(reader)
+func initRecipes(reader io.Reader) {
+	rune_scanner := bufio.NewReader(reader)
+	expression := hu.Read(rune_scanner)
 
 	for _, rexp := range expression.(hu.Tuple) {
 		recipe := &Recipe{}
@@ -65,7 +59,7 @@ func init() {
 		rest := rexp.(hu.Tuple)[4:]
 		for _, e := range rest {
 			parts := strings.SplitN(e.String(), ":", 2)
-			if len(parts)==2 {
+			if len(parts) == 2 {
 				key, value := parts[0], parts[1]
 				switch key {
 				case "Photo":
