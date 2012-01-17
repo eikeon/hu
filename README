@@ -10,3 +10,8 @@ Once installed you can run 'go' and its various commands from the installed loca
 > go fix
 > go fmt
 > go install
+
+See also:
+
+https://github.com/eikeon/hu/hush
+https://github.com/eikeon/eikeon.com
