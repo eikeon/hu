@@ -3,3 +3,7 @@ hush is a hu shell.  To install it from this directory, type:
 > go install
 
 To invoke it, type "hush".
+
+To invoke it with a hu program as an argument, type (e.g.):
+
+> hush -filename="fib.hu"
