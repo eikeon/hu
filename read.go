@@ -7,6 +7,31 @@ import (
 	"strings"
 )
 
+func read(lexer *lexer) (term Term) {
+	switch token := lexer.nextItem(); token.typ {
+	case itemString:
+		term = String(strings.Trim(token.val, string("\"")))
+	case itemNumber:
+		num := big.NewRat(0, 1)
+		num.SetString(token.val)
+		term = &Number{num}
+	case itemOpenParenthesis:
+		reader := &partReader{ignore: 1<<itemSpace | 1<<itemCloseParenthesis, end: 1 << itemCloseParenthesis}
+		term = Tuple(reader.read(lexer))
+	case itemOpenCurlyBrace:
+		reader := &partReader{ignore: 1<<itemSpace | 1<<itemCloseCurlyBrace, end: 1 << itemCloseCurlyBrace}
+		term = Application{Tuple(reader.read(lexer))}
+	case itemEOF:
+		lexer.backupItem()
+		term = nil
+	case itemError:
+		term = Error(token.val)
+	default:
+		term = Symbol(token.val)
+	}
+	return
+}
+
 func Read(in io.RuneScanner) (result Term) {
 	defer func() {
 		switch x := recover().(type) {
@@ -21,137 +46,47 @@ func Read(in io.RuneScanner) (result Term) {
 	return
 }
 
-func read(lexer *lexer) Term {
-	var terms []Term
+type partReader struct {
+	ignore, start, end uint64
+	sub                *partReader
+}
+
+func (reader *partReader) read(lexer *lexer) (result Part) {
+	first := true
 	for {
-		switch token := lexer.nextItem(); token.typ {
-		case itemWord:
-			return Symbol(token.val)
-		case itemString:
-			return String(strings.Trim(token.val, string("\"")))
-		case itemNumber:
-			num := big.NewRat(0, 1)
-			num.SetString(token.val) //, 10)
-			return &Number{num}
-		case itemOpenParenthesis:
-			tuple := read_tuple(lexer)
-			next := lexer.nextItem()
-			if next.typ != itemCloseParenthesis {
-				panic("expected )")
+		token := lexer.peekItem()
+		if token.typ == itemEOF {
+			break
+		}
+		if first == false {
+			if 1<<token.typ&reader.start != 0 {
+				break
 			}
-			return tuple
-		case itemCloseParenthesis:
-		case itemOpenCurlyBrace:
-			expression := read_tuple(lexer)
-			next := lexer.nextItem()
-			if next.typ != itemCloseCurlyBrace {
-				panic("expected }")
-			}
-			return Application{expression}
-		case itemCloseCurlyBrace:
-		// case itemQuote:
-		// 	return &Tuple{Symbol("quote"), read(lexer)}
-		case itemPageBreak:
-			lexer.backupItem()
-			return nil
-		case itemEOF:
-			lexer.backupItem()
-			if terms == nil {
-				return nil
+		} else {
+			first = false
+		}
+		if 1<<token.typ&reader.ignore != 0 {
+			lexer.nextItem()
+		} else {
+			var t Term
+			if reader.sub == nil || 1<<token.typ&reader.end != 0 {
+				t = read(lexer)
 			} else {
-				return Tuple(terms)
+				t = reader.sub.read(lexer)
 			}
-		case itemPunctuation:
-			return Symbol(token.val)
-		case itemNewline:
-		case itemSpace:
-			return Symbol(token.val)
-		case itemError:
-			return Symbol("?")
-			//panic(token.val)
-		case itemSection:
-			terms = append(terms, read_section(lexer))
-		default:
-			return Symbol(token.val)
+			result = append(result, t)
+		}
+		if 1<<token.typ&reader.end != 0 {
+			break
 		}
 	}
-	panic("unexpectedly reached this point")
+	return
 }
 
-func read_tuple(lexer *lexer) Term {
-	var terms []Term
-next:
-	switch token := lexer.peekItem(); token.typ {
-	case itemCloseParenthesis, itemCloseCurlyBrace:
-		return Tuple(terms)
-	case itemSpace:
-		lexer.nextItem()
-		goto next
-	default:
-		term := read(lexer)
-		terms = append(terms, term)
-		goto next
-	}
-	panic("")
-}
-
-func read_part(lexer *lexer) Term {
-	var terms []Term
-next:
-	switch token := lexer.peekItem(); token.typ {
-	case itemNewline:
-		lexer.nextItem()
-		return Part(terms)
-	case itemSection, itemEOF:
-		return Part(terms)
-	default:
-		term := read_line(lexer)
-		terms = append(terms, term)
-		goto next
-	}
-	panic("")
-}
-
-func read_line(lexer *lexer) Term {
-	var terms []Term
-next:
-	switch token := lexer.peekItem(); token.typ {
-	case itemNewline:
-		lexer.nextItem()
-		return Line(terms)
-	case itemSection, itemEOF:
-		return Line(terms)
-	default:
-		term := read(lexer)
-		terms = append(terms, term)
-		goto next
-	}
-	panic("")
-}
-
-/*
- Use § for sections (instead of  for pages)
- Use blank lines to separate items in sections
- Use \t for nesting (for example subsections)
- Use :\n\t as continuations for named items
-*/
-
-func read_section(lexer *lexer) Term {
-	// skip following space
-	item := lexer.peekItem()
-	if item.val == " " {
-		lexer.nextItem()
-	}
-
-	var terms []Term
-next:
-	switch token := lexer.peekItem(); token.typ {
-	case itemSection, itemEOF:
-		return Tuple(terms)
-	default:
-		term := read_part(lexer)
-		terms = append(terms, term)
-		goto next
-	}
-	panic("")
+func ReadDocument(in io.RuneScanner) Part {
+	line := &partReader{end: 1 << itemNewline}
+	part := &partReader{end: 1 << itemNewline, sub: line}
+	section := &partReader{start: 1 << itemSection, sub: part}
+	document := &partReader{sub: section}
+	return document.read(lex("", in))
 }

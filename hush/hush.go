@@ -30,13 +30,19 @@ func main() {
 	environment := hu.NewEnvironment()
 	hu.AddDefaultBindings(environment)
 
+	var result hu.Term
+	fmt.Printf("hu> ")
 	for {
-		fmt.Printf("hu> ")
 		expression := hu.Read(reader)
 		if expression != nil {
-			result := environment.Evaluate(expression)
-			if result != nil {
-				fmt.Fprintf(os.Stdout, "%v\n", result)
+			if expression == hu.Symbol("\n") {
+				if result != nil {
+					fmt.Fprintf(os.Stdout, "%v\n", result)
+				}
+				fmt.Printf("hu> ")
+				continue
+			} else {
+				result = environment.Evaluate(expression)
 			}
 		} else {
 			fmt.Fprintf(os.Stdout, "Goodbye!\n")

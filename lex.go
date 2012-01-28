@@ -31,7 +31,7 @@ func (i item) String() string {
 }
 
 // itemType identifies the type of lex items.
-type itemType int
+type itemType uint
 
 const (
 	itemError itemType = iota // error occurred; value is text of error
