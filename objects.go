@@ -115,26 +115,23 @@ func (p Primitive) Reduce(environment *Environment) Term {
 	return p(environment)
 }
 
-type Application struct {
-	term Term
-}
+type Application []Term
 
 func (application Application) String() string {
-	return fmt.Sprintf("{%v}", application.term)
+	return fmt.Sprintf("{%v}", []Term(application))
 }
 
 func (application Application) Reduce(environment *Environment) Term {
-	terms := application.term.(Tuple)
-	for i, term := range terms {
+	for i, term := range application {
 		switch operator := environment.evaluate(term).(type) {
 		case Operator:
 			var operands Term
 			switch operator.(type) {
 			case PrimitiveFunction:
-				operands = Tuple(terms[i+1:])
+				operands = Tuple(application[i+1:])
 			default:
-				lhs := Tuple(terms[0:i])
-				rhs := Tuple(terms[i+1:])
+				lhs := Tuple(application[0:i])
+				rhs := Tuple(application[i+1:])
 				operands = Tuple([]Term{lhs, rhs})
 			}
 			return operator.apply(environment, operands)

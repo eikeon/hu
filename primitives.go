@@ -209,7 +209,7 @@ func ifPrimitive(environment *Environment, term Term) Term {
 }
 
 func apply(environment *Environment, term Term) Term {
-	return Application{term}
+	return Application(term.(Tuple))
 }
 
 func evalPrimitive(environment *Environment, term Term) Term {
@@ -233,5 +233,5 @@ func let(environment *Environment, term Term) Term {
 	operator := lambda(environment, Tuple([]Term{parameters, body}))
 	operands := arguments
 
-	return Application{Tuple([]Term{operator, operands})}
+	return Application([]Term{operator, operands})
 }

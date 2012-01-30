@@ -20,7 +20,7 @@ func read(lexer *lexer) (term Term) {
 		term = Tuple(reader.read(lexer))
 	case itemOpenCurlyBrace:
 		reader := &partReader{ignore: 1<<itemSpace | 1<<itemCloseCurlyBrace, end: 1 << itemCloseCurlyBrace}
-		term = Application{Tuple(reader.read(lexer))}
+		term = Application(reader.read(lexer))
 	case itemEOF:
 		lexer.backupItem()
 		term = nil
