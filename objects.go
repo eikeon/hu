@@ -80,6 +80,12 @@ func (tuple Tuple) String() string {
 	return fmt.Sprintf("(%v)", []Term(tuple))
 }
 
+type Set []Term
+
+func (set Set) String() string {
+	return fmt.Sprintf("{%v}", []Term(set))
+}
+
 type Part []Term
 
 func (part Part) String() string {
