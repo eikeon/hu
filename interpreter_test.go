@@ -80,7 +80,7 @@ var tests = []testCase{
 	//{"{remainder 5 3}", is_eq_number(2)},
 	{"foo", is_unbound()},
 	{"{+ 1 foo}", is_unbound()},
-	//{"{of 1 2 3}, is_set()},
+	{"{of 1 2 3}", is_set()},
 	//{"{of 1 2 3}, is_eq_set({of 3 2 1})},
 }
 
