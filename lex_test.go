@@ -6,8 +6,8 @@ package hu
 
 import (
 	"reflect"
-	"testing"
 	"strings"
+	"testing"
 )
 
 type lexTest struct {

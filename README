@@ -1,1 +1,17 @@
+We're currently developing against the latest weekly release of Go.
 
+To install:
+
+> goinstall github.com/eikeon/hu
+
+Once installed you can run 'go' and its various commands from the installed location. For example:
+
+> go test
+> go fix
+> go fmt
+> go install
+
+See also:
+
+https://github.com/eikeon/hu/hush
+https://github.com/eikeon/eikeon.com

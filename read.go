@@ -7,6 +7,31 @@ import (
 	"strings"
 )
 
+func read(lexer *lexer) (term Term) {
+	switch token := lexer.nextItem(); token.typ {
+	case itemString:
+		term = String(strings.Trim(token.val, string("\"")))
+	case itemNumber:
+		num := big.NewRat(0, 1)
+		num.SetString(token.val)
+		term = &Number{num}
+	case itemOpenParenthesis:
+		reader := &partReader{ignore: 1<<itemSpace | 1<<itemCloseParenthesis, end: 1 << itemCloseParenthesis}
+		term = Tuple(reader.read(lexer))
+	case itemOpenCurlyBrace:
+		reader := &partReader{ignore: 1<<itemSpace | 1<<itemCloseCurlyBrace, end: 1 << itemCloseCurlyBrace}
+		term = Application(reader.read(lexer))
+	case itemEOF:
+		lexer.backupItem()
+		term = nil
+	case itemError:
+		term = Error(token.val)
+	default:
+		term = Symbol(token.val)
+	}
+	return
+}
+
 func Read(in io.RuneScanner) (result Term) {
 	defer func() {
 		switch x := recover().(type) {
@@ -21,68 +46,47 @@ func Read(in io.RuneScanner) (result Term) {
 	return
 }
 
-func read(lexer *lexer) Term {
-	for {
-		switch token := lexer.nextItem(); token.typ {
-		case itemWord:
-			return Symbol(token.val)
-		case itemString:
-			return String(strings.Trim(token.val, string("\"")))
-		case itemNumber:
-			num := big.NewInt(0)
-			num.SetString(token.val, 10)
-			return &Number{num}
-		case itemOpenParenthesis:
-			tuple := read_tuple(lexer)
-			next := lexer.nextItem()
-			if next.typ != itemCloseParenthesis {
-				panic("expected )")
-			}
-			return tuple
-		case itemCloseParenthesis:
-		case itemOpenCurlyBrace:
-			expression := read_tuple(lexer)
-			next := lexer.nextItem()
-			if next.typ != itemCloseCurlyBrace {
-				panic("expected }")
-			}
-			return Application{expression}
-		case itemCloseCurlyBrace:
-		// case itemQuote:
-		// 	return &Tuple{Symbol("quote"), read(lexer)}
-		case itemPageBreak:
-			lexer.backupItem()
-			return nil
-		case itemEOF:
-			lexer.backupItem()
-			return nil
-		case itemPunctuation:
-		case itemNewline:
-		case itemSpace:
-		case itemError:
-			return Symbol("?")
-			//panic(token.val)
-		default:
-			return Symbol("?")
-			//panic(token.typ)
-		}
-	}
-	panic("unexpectedly reached this point")
+type partReader struct {
+	ignore, start, end uint64
+	sub                *partReader
 }
 
-func read_tuple(lexer *lexer) Term {
-	var terms []Term
-next:
-	switch token := lexer.peekItem(); token.typ {
-	case itemCloseParenthesis, itemCloseCurlyBrace:
-		return Tuple(terms)
-	case itemSpace:
-		lexer.nextItem()
-		goto next
-	default:
-		term := read(lexer)
-		terms = append(terms, term)
-		goto next
+func (reader *partReader) read(lexer *lexer) (result Part) {
+	first := true
+	for {
+		token := lexer.peekItem()
+		if token.typ == itemEOF {
+			break
+		}
+		if first == false {
+			if 1<<token.typ&reader.start != 0 {
+				break
+			}
+		} else {
+			first = false
+		}
+		if 1<<token.typ&reader.ignore != 0 {
+			lexer.nextItem()
+		} else {
+			var t Term
+			if reader.sub == nil || 1<<token.typ&reader.end != 0 {
+				t = read(lexer)
+			} else {
+				t = reader.sub.read(lexer)
+			}
+			result = append(result, t)
+		}
+		if 1<<token.typ&reader.end != 0 {
+			break
+		}
 	}
-	panic("")
+	return
+}
+
+func ReadDocument(in io.RuneScanner) Part {
+	line := &partReader{end: 1 << itemNewline}
+	part := &partReader{end: 1 << itemNewline, sub: line}
+	section := &partReader{start: 1 << itemSection, sub: part}
+	document := &partReader{sub: section}
+	return document.read(lex("", in))
 }

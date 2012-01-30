@@ -31,7 +31,7 @@ func (i item) String() string {
 }
 
 // itemType identifies the type of lex items.
-type itemType int
+type itemType uint
 
 const (
 	itemError itemType = iota // error occurred; value is text of error
@@ -49,6 +49,7 @@ const (
 	itemSpace
 	itemPeriod
 	itemPageBreak
+	itemSection
 )
 
 // Make the types prettyprint.
@@ -68,6 +69,7 @@ var itemName = map[itemType]string{
 	itemSpace:            "space",
 	itemPeriod:           "period",
 	itemPageBreak:        "page break",
+	itemSection:          "§",
 }
 
 func (i itemType) String() string {
@@ -217,6 +219,12 @@ func lexItem(l *lexer) stateFn {
 	case r == eof:
 		l.emit(itemEOF)
 		return nil
+	// case r == '§':
+	// 	if l.peek() == ' ' {
+	// 		l.next()
+	// 	}
+	// 	l.emit(itemSection)
+	// 	return lexItem
 	case r == '"':
 		return lexQuote
 	case r == '+' || r == '-':
@@ -276,6 +284,8 @@ func lexPunctuation(l *lexer) stateFn {
 		l.emit(itemPeriod)
 	case '\f':
 		l.emit(itemPageBreak)
+	case '§':
+		l.emit(itemSection)
 	case ',', ':', ';', '!', '-':
 		l.emit(itemPunctuation)
 	default:
@@ -349,7 +359,7 @@ Loop:
 // isPunctuation reports whether r is a punctuation character.
 func isPunctuation(r rune) bool {
 	switch r {
-	case ' ', '\t', '\n', '\r', '\f', '(', ')', '{', '}', '\'', '-', eof:
+	case ' ', '\t', '\n', '\r', '§', '\f', '(', ')', '{', '}', '\'', '-', eof:
 		return true
 	case '.', '!', ',', ':':
 		return true

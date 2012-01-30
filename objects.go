@@ -1,9 +1,11 @@
+// Package hu ...
 package hu
 
 import (
 	"bytes"
 	"fmt"
 	"math/big"
+	"strings"
 )
 
 type Term interface {
@@ -33,11 +35,11 @@ func (b Boolean) String() (result string) {
 }
 
 type Number struct {
-	value *big.Int
+	value *big.Rat
 }
 
 func (n *Number) String() string {
-	return n.value.String()
+	return n.value.RatString()
 }
 
 type Symbol string
@@ -78,6 +80,16 @@ func (tuple Tuple) String() string {
 	return fmt.Sprintf("(%v)", []Term(tuple))
 }
 
+type Part []Term
+
+func (part Part) String() string {
+	var terms []string
+	for _, term := range part {
+		terms = append(terms, term.String())
+	}
+	return strings.Join(terms, "")
+}
+
 type Operator interface {
 	Term
 	apply(*Environment, Term) Term
@@ -103,26 +115,23 @@ func (p Primitive) Reduce(environment *Environment) Term {
 	return p(environment)
 }
 
-type Application struct {
-	term Term
-}
+type Application []Term
 
 func (application Application) String() string {
-	return fmt.Sprintf("{%v}", application.term)
+	return fmt.Sprintf("{%v}", []Term(application))
 }
 
 func (application Application) Reduce(environment *Environment) Term {
-	terms := application.term.(Tuple)
-	for i, term := range terms {
+	for i, term := range application {
 		switch operator := environment.evaluate(term).(type) {
 		case Operator:
 			var operands Term
 			switch operator.(type) {
 			case PrimitiveFunction:
-				operands = Tuple(terms[i+1:])
+				operands = Tuple(application[i+1:])
 			default:
-				lhs := Tuple(terms[0:i])
-				rhs := Tuple(terms[i+1:])
+				lhs := Tuple(application[0:i])
+				rhs := Tuple(application[i+1:])
 				operands = Tuple([]Term{lhs, rhs})
 			}
 			return operator.apply(environment, operands)
