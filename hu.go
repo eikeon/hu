@@ -1,4 +1,5 @@
-// Package hu ...
+// Package hu implements (an interpreter for) a language optimized for
+// humans.
 package hu
 
 import (
