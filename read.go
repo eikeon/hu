@@ -458,3 +458,8 @@ func ReadDocument(in io.RuneScanner) Part {
 	document := &partDescription{sub: section}
 	return newReader("", in).readPart(document)
 }
+
+func ReadSentence(in io.RuneScanner) []Term {
+	line := &partDescription{ignore: 1<<itemPeriod | 1<<itemSpace | 1<<itemNewline, end: 1 << itemPeriod}
+	return newReader("", in).readPart(line)
+}
