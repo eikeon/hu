@@ -1,6 +1,6 @@
 hush is a hu shell.  To install it from this directory, type:
 
-> go install
+> go install github.com/eikeon/hu/hush
 
 To invoke it, type "hush".
 
