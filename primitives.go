@@ -144,6 +144,7 @@ func define(environment *Environment, term Term) Term {
 		parameters := v[1]
 		body := terms[1]
 		value = lambda(environment, Tuple([]Term{parameters, body}))
+		//TODO: value = Closure{value, environment}
 	default:
 		panic("unexpected type")
 
