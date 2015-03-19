@@ -73,6 +73,7 @@ var tests = []testCase{
 	{"{begin {define fib {lambda (n) {if {< n 2} n {+ {fib {- n 1}} {fib {- n 2}}}}}} {fib 15}}", is_eq_number(610)},
 	{"{begin {define plus {operator ((lhs) (rhs)) {+ lhs rhs}}} {1 plus 2}}", is_eq_number(3)},
 	{"{begin {define plus {operator (lhs rhs) {concat lhs rhs}}} {1 2 plus 3 4}}", is_tuple()},
+	{"{begin {define plus {operator (lhs rhs) {concat lhs rhs}}} {plus 3 4}}", is_tuple()},
 	{"{apply + 1 2}", is_eq_number(3)},
 	{"{eval {+ 1 2}}", is_eq_number(3)},
 	{"{let ((x 2)) {+ x x}}", is_eq_number(4)},
@@ -80,7 +81,8 @@ var tests = []testCase{
 	//{"{remainder 5 3}", is_eq_number(2)},
 	{"foo", is_unbound()},
 	{"{+ 1 foo}", is_unbound()},
-	{"{of 1 2 3}", is_set()},
+	{"{begin {define (double (x)) {+ x x}} {double 4}}", is_eq_number(8)},
+	{"{begin {define (double (x)) {+ x x}} {define (quad (x)) {+ {double x} {double x}}} {quad 4}}", is_eq_number(16)},
 	//{"{of 1 2 3}, is_eq_set({of 3 2 1})},
 }
 
