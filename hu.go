@@ -3,7 +3,6 @@
 package hu
 
 import (
-	"bytes"
 	"fmt"
 	"math/big"
 	"strings"
@@ -56,23 +55,7 @@ func (s Symbol) Reduce(environment *Environment) Term {
 type String string
 
 func (s String) String() string {
-	var out bytes.Buffer
-	for _, rune := range s {
-		switch rune {
-		case '\n':
-			out.WriteString("\\n")
-			break
-		case '\\':
-			out.WriteString("\\\\")
-			break
-		case '"':
-			out.WriteString("\\\"")
-			break
-		default:
-			out.WriteRune(rune)
-		}
-	}
-	return out.String()
+	return string(s)
 }
 
 type Tuple []Term
