@@ -174,7 +174,7 @@ func (e UnboundVariableError) String() string {
 }
 
 type Environment struct {
-	frame  map[Symbol]Term
+	frame Frame
 	parent *Environment
 }
 
@@ -183,7 +183,11 @@ func (environment *Environment) String() string {
 }
 
 func NewEnvironment() *Environment {
-	return &Environment{frame: make(map[Symbol]Term)}
+	return &Environment{frame: make(frame)}
+}
+
+func NewEnvironmentWithFrame(f Frame) *Environment {
+	return &Environment{frame: f}
 }
 
 // returns a new (child) environment from this environment extended
@@ -192,14 +196,6 @@ func (environment *Environment) NewChildEnvironment() *Environment {
 	child := NewEnvironment()
 	child.parent = environment
 	return child
-}
-
-func (environment *Environment) Closure(term Term) Term {
-	switch term.(type) {
-	case Application:
-		return Closure{term, environment}
-	}
-	return term
 }
 
 func (environment *Environment) Extend(variables, values Term) {
@@ -214,16 +210,40 @@ func (environment *Environment) Extend(variables, values Term) {
 			environment.Extend(v, val)
 		}
 	case Symbol:
-		environment.Define(vars, environment.parent.Closure(values))
+		if (vars != Term(nil)) {
+			environment.Define(vars, Closure{values, environment.parent})
+		}
 	}
 }
 
+type Frame interface {
+	Define(variable Symbol, value Term)
+	Set(variable Symbol, value Term) bool
+	Get(variable Symbol) (Term, bool)
+}
+
+type frame map[Symbol]Term
+
+func (frame frame) Define(variable Symbol, value Term) {
+	frame[variable] = value
+}
+
+func (frame frame) Set(variable Symbol, value Term) bool {
+	_, ok := frame[variable]
+	return ok
+}
+
+func (frame frame) Get(variable Symbol) (Term, bool) {
+	value, ok := frame[variable]
+	return value, ok
+}
+
 func (environment *Environment) Define(variable Symbol, value Term) {
-	environment.frame[variable] = value
+	environment.frame.Define(variable, value)
 }
 
 func (environment *Environment) Set(variable Symbol, value Term) {
-	_, ok := environment.frame[variable]
+	_, ok := environment.frame.Get(variable)
 	if ok {
 		environment.Define(variable, value)
 	} else if environment.parent != nil {
@@ -234,7 +254,7 @@ func (environment *Environment) Set(variable Symbol, value Term) {
 }
 
 func (environment *Environment) Get(variable Symbol) Term {
-	value, ok := environment.frame[variable]
+	value, ok := environment.frame.Get(variable)
 	if ok {
 		return value
 	} else if environment.parent != nil {
