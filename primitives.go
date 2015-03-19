@@ -21,7 +21,7 @@ func operator(environment *Environment, term Term) Term {
 
 func add_numbers(environment *Environment, term Term) Term {
 	var result = big.NewRat(0, 1)
-	for _, argument := range term.(Tuple) {
+	for _, argument := range environment.evaluate(term).(Tuple) {
 		num := environment.evaluate(argument).(*Number)
 		result.Add(result, num.value)
 	}
@@ -30,7 +30,7 @@ func add_numbers(environment *Environment, term Term) Term {
 
 func add_numbersP(environment *Environment) Term {
 	var result = big.NewRat(0, 1)
-	numbers := environment.Get(Symbol("numbers"))
+	numbers := environment.evaluate(environment.Get(Symbol("numbers")))
 	for _, number := range numbers.(Tuple) {
 		num := environment.evaluate(number).(*Number)
 		result.Add(result, num.value)
