@@ -230,6 +230,8 @@ func lexItem(l *reader) stateFn {
 	// 	return lexItem
 	case r == '"':
 		return lexQuote
+	case r == '`':
+		return lexRawQuote
 	case r == '+' || r == '-':
 		rr := l.peek()
 		if isPunctuation(rr) {
@@ -359,6 +361,26 @@ Loop:
 	return lexPunctuation
 }
 
+// lexRawQuote scans a quoted string.
+func lexRawQuote(l *reader) stateFn {
+Loop:
+	for {
+		switch l.next() {
+		case '\\':
+			if r := l.next(); r != eof && r != '\n' {
+				break
+			}
+			fallthrough
+		case eof, '\n':
+			return l.errorf("unterminated quoted string")
+		case '`':
+			break Loop
+		}
+	}
+	l.emit(itemString)
+	return lexPunctuation
+}
+
 // isPunctuation reports whether r is a punctuation character.
 func isPunctuation(r rune) bool {
 	switch r {
@@ -378,7 +400,7 @@ func isAlphaNumeric(r rune) bool {
 func (reader *reader) read() (term Term) {
 	switch token := reader.nextItem(); token.typ {
 	case itemString:
-		term = String(strings.Trim(token.val, string("\"")))
+		term = String(strings.Trim(token.val, string("\"`")))
 	case itemNumber:
 		num := big.NewRat(0, 1)
 		num.SetString(token.val)
