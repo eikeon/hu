@@ -131,18 +131,18 @@ func (application Application) Reduce(environment *Environment) Term {
 }
 
 type Abstraction struct {
-	parameters Term
-	term       Term
+	Parameters Term
+	Term       Term
 }
 
 func (a Abstraction) apply(environment *Environment, values Term) Term {
 	e := environment.NewChildEnvironment()
-	e.Extend(a.parameters, values)
-	return Closure{a.term, e}
+	e.Extend(a.Parameters, values)
+	return Closure{a.Term, e}
 }
 
 func (abstraction Abstraction) String() string {
-	return fmt.Sprintf("#<abstraction> %v %v", abstraction.parameters, abstraction.term)
+       return fmt.Sprintf("#<abstraction> %v %v", abstraction.Parameters, abstraction.Term)
 }
 
 type Closure struct {
