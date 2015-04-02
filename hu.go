@@ -142,7 +142,7 @@ func (a Abstraction) apply(environment *Environment, values Term) Term {
 }
 
 func (abstraction Abstraction) String() string {
-       return fmt.Sprintf("#<abstraction> %v %v", abstraction.Parameters, abstraction.Term)
+	return fmt.Sprintf("#<abstraction> %v %v", abstraction.Parameters, abstraction.Term)
 }
 
 type Closure struct {
@@ -174,7 +174,7 @@ func (e UnboundVariableError) String() string {
 }
 
 type Environment struct {
-	frame Frame
+	frame  Frame
 	parent *Environment
 }
 
@@ -210,7 +210,7 @@ func (environment *Environment) Extend(variables, values Term) {
 			environment.Extend(v, val)
 		}
 	case Symbol:
-		if (vars != Term(nil)) {
+		if vars != Term(nil) {
 			environment.Define(vars, Closure{values, environment.parent})
 		}
 	}
