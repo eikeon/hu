@@ -14,7 +14,7 @@ type Term interface {
 
 type Reducible interface {
 	Term
-	Reduce(*Environment) Term
+	Reduce(Environment) Term
 }
 
 type Rune int
@@ -48,7 +48,7 @@ func (s Symbol) String() string {
 	return string(s)
 }
 
-func (s Symbol) Reduce(environment *Environment) Term {
+func (s Symbol) Reduce(environment Environment) Term {
 	return environment.Get(s)
 }
 
@@ -82,12 +82,12 @@ func (part Part) String() string {
 
 type Operator interface {
 	Term
-	apply(*Environment, Term) Term
+	apply(Environment, Term) Term
 }
 
-type PrimitiveFunction func(*Environment, Term) Term
+type PrimitiveFunction func(Environment, Term) Term
 
-func (pf PrimitiveFunction) apply(environment *Environment, term Term) Term {
+func (pf PrimitiveFunction) apply(environment Environment, term Term) Term {
 	return pf(environment, term)
 }
 
@@ -95,13 +95,13 @@ func (pf PrimitiveFunction) String() string {
 	return fmt.Sprintf("#<primitive-function> %p", pf)
 }
 
-type Primitive func(*Environment) Term
+type Primitive func(Environment) Term
 
 func (p Primitive) String() string {
 	return fmt.Sprintf("#<primitive> %p", p)
 }
 
-func (p Primitive) Reduce(environment *Environment) Term {
+func (p Primitive) Reduce(environment Environment) Term {
 	return p(environment)
 }
 
@@ -111,9 +111,9 @@ func (application Application) String() string {
 	return fmt.Sprintf("{%v}", []Term(application))
 }
 
-func (application Application) Reduce(environment *Environment) Term {
+func (application Application) Reduce(environment Environment) Term {
 	for i, term := range application {
-		switch operator := environment.evaluate(term).(type) {
+		switch operator := environment.Evaluate(term).(type) {
 		case Operator:
 			var operands Term
 			switch operator.(type) {
@@ -135,7 +135,7 @@ type Abstraction struct {
 	Term       Term
 }
 
-func (a Abstraction) apply(environment *Environment, values Term) Term {
+func (a Abstraction) apply(environment Environment, values Term) Term {
 	e := environment.NewChildEnvironment()
 	e.Extend(a.Parameters, values)
 	return Closure{a.Term, e}
@@ -146,16 +146,16 @@ func (abstraction Abstraction) String() string {
 }
 
 type Closure struct {
-	term        Term
-	environment *Environment
+	Term        Term
+	Environment Environment
 }
 
 func (closure Closure) String() string {
-	return fmt.Sprintf("#<Closure> %v %v\n", closure.term, closure.environment)
+	return fmt.Sprintf("#<Closure> %v %v\n", closure.Term, closure.Environment)
 }
 
-func (closure Closure) Reduce(environment *Environment) Term {
-	return closure.environment.evaluate(closure.term)
+func (closure Closure) Reduce(environment Environment) Term {
+	return closure.Environment.Evaluate(closure.Term)
 }
 
 type Error string
@@ -173,32 +173,36 @@ func (e UnboundVariableError) String() string {
 	return "Unbound Variable: " + e.variable.String() + " operation: " + e.operation
 }
 
-type Environment struct {
+type environment struct {
 	frame  Frame
-	parent *Environment
+	parent Environment
 }
 
-func (environment *Environment) String() string {
+func (environment *environment) String() string {
 	return "#<environment>"
 }
 
-func NewEnvironment() *Environment {
-	return &Environment{frame: make(frame)}
+func NewEnvironment() Environment {
+	return &environment{frame: make(LocalFrame)}
 }
 
-func NewEnvironmentWithFrame(f Frame) *Environment {
-	return &Environment{frame: f}
+func NewEnvironmentWithFrame(f Frame) *environment {
+	return &environment{frame: f}
+}
+
+func NewEnvironmentWithParent(p Environment) *environment {
+	return &environment{frame: make(LocalFrame), parent: p}
 }
 
 // returns a new (child) environment from this environment extended
 // with bindings given by variables, values.
-func (environment *Environment) NewChildEnvironment() *Environment {
-	child := NewEnvironment()
-	child.parent = environment
+func (e *environment) NewChildEnvironment() Environment {
+	child := &environment{frame: make(LocalFrame)}
+	child.parent = e
 	return child
 }
 
-func (environment *Environment) Extend(variables, values Term) {
+func (environment *environment) Extend(variables, values Term) {
 	switch vars := variables.(type) {
 	case Tuple:
 		vals := values.(Tuple)
@@ -222,27 +226,36 @@ type Frame interface {
 	Get(variable Symbol) (Term, bool)
 }
 
-type frame map[Symbol]Term
+type Environment interface {
+	Define(variable Symbol, value Term)
+	Set(variable Symbol, value Term)
+	Get(variable Symbol) Term
+	Evaluate(term Term) (result Term)
+	NewChildEnvironment() Environment
+	Extend(variables, values Term)
+}
 
-func (frame frame) Define(variable Symbol, value Term) {
+type LocalFrame map[Symbol]Term
+
+func (frame LocalFrame) Define(variable Symbol, value Term) {
 	frame[variable] = value
 }
 
-func (frame frame) Set(variable Symbol, value Term) bool {
+func (frame LocalFrame) Set(variable Symbol, value Term) bool {
 	_, ok := frame[variable]
 	return ok
 }
 
-func (frame frame) Get(variable Symbol) (Term, bool) {
+func (frame LocalFrame) Get(variable Symbol) (Term, bool) {
 	value, ok := frame[variable]
 	return value, ok
 }
 
-func (environment *Environment) Define(variable Symbol, value Term) {
+func (environment *environment) Define(variable Symbol, value Term) {
 	environment.frame.Define(variable, value)
 }
 
-func (environment *Environment) Set(variable Symbol, value Term) {
+func (environment *environment) Set(variable Symbol, value Term) {
 	_, ok := environment.frame.Get(variable)
 	if ok {
 		environment.Define(variable, value)
@@ -253,7 +266,7 @@ func (environment *Environment) Set(variable Symbol, value Term) {
 	}
 }
 
-func (environment *Environment) Get(variable Symbol) Term {
+func (environment *environment) Get(variable Symbol) Term {
 	value, ok := environment.frame.Get(variable)
 	if ok {
 		return value
@@ -265,11 +278,11 @@ func (environment *Environment) Get(variable Symbol) Term {
 	return nil
 }
 
-func (environment *Environment) AddPrimitive(name string, function PrimitiveFunction) {
+func (environment *environment) AddPrimitive(name string, function PrimitiveFunction) {
 	environment.Define(Symbol(name), function)
 }
 
-func (environment *Environment) Evaluate(term Term) (result Term) {
+func (environment *environment) _Evaluate(term Term) (result Term) {
 	defer func() {
 		switch x := recover().(type) {
 		case Term:
@@ -278,11 +291,11 @@ func (environment *Environment) Evaluate(term Term) (result Term) {
 			result = Error(fmt.Sprintf("%v", x))
 		}
 	}()
-	result = environment.evaluate(term)
+	result = environment.Evaluate(term)
 	return
 }
 
-func (environment *Environment) evaluate(term Term) Term {
+func (environment *environment) Evaluate(term Term) Term {
 tailcall:
 	switch t := term.(type) {
 	case Reducible:

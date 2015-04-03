@@ -1,6 +1,7 @@
 package hu
 
 import (
+	"fmt"
 	"math/big"
 	"strings"
 	"testing"
@@ -86,13 +87,26 @@ var tests = []testCase{
 	//{"{of 1 2 3}, is_eq_set({of 3 2 1})},
 }
 
+func GuardedEvaluate(environment Environment, expression Term) (result Term) {
+	defer func() {
+		switch x := recover().(type) {
+		case Term:
+			result = x
+		case interface{}:
+			result = Error(fmt.Sprintf("%v", x))
+		}
+	}()
+	result = environment.Evaluate(expression)
+	return
+}
+
 func TestInterpreter(t *testing.T) {
 	for _, test := range tests {
 		environment := NewEnvironment()
 		AddDefaultBindings(environment)
 		reader := strings.NewReader(test.input)
 		expression := Read(reader)
-		result := environment.Evaluate(expression)
+		result := GuardedEvaluate(environment, expression) //result := environment.Evaluate(expression)
 		if test.is_expected(result) {
 			t.Logf("  PASS: %v resulted in %v as expected", test.input, result)
 		} else {

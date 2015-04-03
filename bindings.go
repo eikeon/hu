@@ -2,38 +2,43 @@ package hu
 
 import "strings"
 
-func AddDefaultBindings(environment *Environment) {
+func AddPrimitive(environment Environment, name string, function PrimitiveFunction) {
+	environment.Define(Symbol(name), function)
+}
+
+func AddDefaultBindings(environment Environment) {
 	environment.Define("true", Boolean(true))
 	environment.Define("false", Boolean(false))
 
-	environment.AddPrimitive("lambda", lambda)
-	environment.AddPrimitive("operator", operator)
+	AddPrimitive(environment, "lambda", lambda)
+	AddPrimitive(environment, "operator", operator)
 
-	environment.AddPrimitive("=", is_number_equal_proc)
-	environment.AddPrimitive("<", is_less_than_proc)
-	environment.AddPrimitive(">", is_greater_than_proc)
+	AddPrimitive(environment, "=", is_number_equal_proc)
+	AddPrimitive(environment, "<", is_less_than_proc)
+	AddPrimitive(environment, ">", is_greater_than_proc)
 
-	environment.AddPrimitive("+", add_numbers)
+	AddPrimitive(environment, "+", add_numbers)
 	environment.Define("add_numbers", Primitive(add_numbersP))
-	environment.AddPrimitive("concat", add_lists)
+	AddPrimitive(environment, "concat", add_lists)
 
-	environment.AddPrimitive("-", subtract_proc)
+	AddPrimitive(environment, "-", subtract_proc)
 
-	environment.AddPrimitive("*", multiply_proc)
-	//environment.AddPrimitive("quotient", quotient_proc)
-	//environment.AddPrimitive("remainder", remainder_proc)
+	AddPrimitive(environment, "*", multiply_proc)
+	//AddPrimitive(environment, "quotient", quotient_proc)
+	//AddPrimitive(environment, "remainder", remainder_proc)
 
-	environment.AddPrimitive("define", define)
-	environment.AddPrimitive("set", set)
-	environment.AddPrimitive("begin", begin)
-	environment.AddPrimitive("if", ifPrimitive)
-	environment.AddPrimitive("and", and)
-	environment.AddPrimitive("or", or)
-	environment.AddPrimitive("apply", apply)
-	environment.AddPrimitive("eval", evalPrimitive)
-	environment.AddPrimitive("let", let)
+	AddPrimitive(environment, "define", define)
+	AddPrimitive(environment, "set", set)
+	AddPrimitive(environment, "get", get)
+	AddPrimitive(environment, "begin", begin)
+	AddPrimitive(environment, "if", ifPrimitive)
+	AddPrimitive(environment, "and", and)
+	AddPrimitive(environment, "or", or)
+	AddPrimitive(environment, "apply", apply)
+	AddPrimitive(environment, "eval", evalPrimitive)
+	AddPrimitive(environment, "let", let)
 
-	environment.evaluate(Read(strings.NewReader(`{define plus {operator ((lhs) (rhs)) {+ lhs rhs}}}
+	environment.Evaluate(Read(strings.NewReader(`{define plus {operator ((lhs) (rhs)) {+ lhs rhs}}}
 {define plus_list_operator {operator (lhs rhs) {concat lhs rhs}}} {1 2 plus 3 4}}
 	`)))
 }
