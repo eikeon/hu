@@ -306,7 +306,7 @@ func lexPunctuation(l *reader) stateFn {
 // strconv) will notice.
 func lexNumber(l *reader) stateFn {
 	if !l.scanNumber() {
-		return l.errorf("bad number syntax: %q", l.current.String())
+		return lexWord
 	}
 	l.emit(itemNumber)
 	return lexPunctuation
