@@ -485,3 +485,8 @@ func ReadSentence(in io.RuneScanner) []Term {
 	line := &partDescription{ignore: 1<<itemPeriod | 1<<itemSpace | 1<<itemNewline, end: 1 << itemPeriod}
 	return newReader("", in).readPart(line)
 }
+
+func ReadMessage(in io.RuneScanner) []Term {
+	part := &partDescription{ignore: 1<<itemSpace | 1<<itemPunctuation | 1<<itemEOF, end: 1 << itemEOF}
+	return newReader("", in).readPart(part)
+}
