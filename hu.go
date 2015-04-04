@@ -304,3 +304,16 @@ tailcall:
 	}
 	return term
 }
+
+func GuardedEvaluate(environment Environment, expression Term) (result Term) {
+	defer func() {
+		switch x := recover().(type) {
+		case Term:
+			result = x
+		case interface{}:
+			result = Error(fmt.Sprintf("%v", x))
+		}
+	}()
+	result = environment.Evaluate(expression)
+	return
+}

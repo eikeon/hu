@@ -1,7 +1,6 @@
 package hu
 
 import (
-	"fmt"
 	"math/big"
 	"strings"
 	"testing"
@@ -85,19 +84,6 @@ var tests = []testCase{
 	{"{begin {define (double (x)) {+ x x}} {double 4}}", is_eq_number(8)},
 	{"{begin {define (double (x)) {+ x x}} {define (quad (x)) {+ {double x} {double x}}} {quad 4}}", is_eq_number(16)},
 	//{"{of 1 2 3}, is_eq_set({of 3 2 1})},
-}
-
-func GuardedEvaluate(environment Environment, expression Term) (result Term) {
-	defer func() {
-		switch x := recover().(type) {
-		case Term:
-			result = x
-		case interface{}:
-			result = Error(fmt.Sprintf("%v", x))
-		}
-	}()
-	result = environment.Evaluate(expression)
-	return
 }
 
 func TestInterpreter(t *testing.T) {
