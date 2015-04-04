@@ -236,8 +236,8 @@ func let(environment Environment, term Term) Term {
 	var parameters, arguments Tuple
 	for _, binding := range bindings.(Tuple) {
 		b := binding.(Tuple)
-		parameters = append(parameters, b[0])
-		arguments = append(arguments, b[1])
+		parameters = append(parameters, environment.Evaluate(b[0]))
+		arguments = append(arguments, environment.Evaluate(b[1]))
 	}
 
 	parameters = Tuple([]Term{parameters}) // TODO: ??
