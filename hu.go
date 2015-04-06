@@ -182,7 +182,7 @@ func (environment *environment) String() string {
 	return "#<environment>"
 }
 
-func NewEnvironment() Environment {
+func NewEnvironment() *environment {
 	return &environment{frame: make(LocalFrame)}
 }
 
@@ -192,6 +192,10 @@ func NewEnvironmentWithFrame(f Frame) *environment {
 
 func NewEnvironmentWithParent(p Environment) *environment {
 	return &environment{frame: make(LocalFrame), parent: p}
+}
+
+func NewEnvironmentWithFrameWithParent(f Frame, p Environment) *environment {
+	return &environment{frame: f, parent: p}
 }
 
 // returns a new (child) environment from this environment extended
