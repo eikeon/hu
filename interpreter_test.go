@@ -45,6 +45,13 @@ func is_unbound() func(Term) bool {
 	}
 }
 
+func is_error() func(Term) bool {
+	return func(result Term) bool {
+		_, ok := result.(Error)
+		return ok
+	}
+}
+
 func is_nil() func(Term) bool {
 	return func(result Term) bool {
 		return result == nil
@@ -80,7 +87,7 @@ var tests = []testCase{
 	//{"{quotient 10 3}", is_eq_number(3)},
 	//{"{remainder 5 3}", is_eq_number(2)},
 	{"foo", is_unbound()},
-	{"{+ 1 foo}", is_unbound()},
+	{"{+ 1 foo}", is_error()},
 	{"{begin {define (double (x)) {+ x x}} {double 4}}", is_eq_number(8)},
 	{"{begin {define (double (x)) {+ x x}} {define (quad (x)) {+ {double x} {double x}}} {quad 4}}", is_eq_number(16)},
 	//{"{of 1 2 3}, is_eq_set({of 3 2 1})},
@@ -88,7 +95,7 @@ var tests = []testCase{
 
 func TestInterpreter(t *testing.T) {
 	for _, test := range tests {
-		environment := NewEnvironment()
+		environment := &LocalEnvironment{}
 		AddDefaultBindings(environment)
 		reader := strings.NewReader(test.input)
 		expression := Read(reader)

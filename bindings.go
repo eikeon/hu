@@ -38,7 +38,7 @@ func AddDefaultBindings(environment Environment) {
 	AddPrimitive(environment, "eval", evalPrimitive)
 	AddPrimitive(environment, "let", let)
 
-	environment.Evaluate(Read(strings.NewReader(`{define plus {operator ((lhs) (rhs)) {+ lhs rhs}}}
+	Evaluate(environment, Read(strings.NewReader(`{define plus {operator ((lhs) (rhs)) {+ lhs rhs}}}
 {define plus_list_operator {operator (lhs rhs) {concat lhs rhs}}} {1 2 plus 3 4}}
 	`)))
 }

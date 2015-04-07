@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/eikeon/hu"
-	"fmt"
-	"os"
 	"bufio"
 	"flag"
+	"fmt"
+	"github.com/eikeon/hu"
 	"io"
 	"log"
+	"os"
 )
 
 func main() {
@@ -26,8 +26,7 @@ func main() {
 		reader = bufio.NewReader(f)
 	}
 
-
-	environment := hu.NewEnvironment()
+	environment := &hu.LocalEnvironment{}
 	hu.AddDefaultBindings(environment)
 
 	var result hu.Term
@@ -42,7 +41,7 @@ func main() {
 				fmt.Printf("hu> ")
 				continue
 			} else {
-				result = environment.Evaluate(expression)
+				result = hu.Evaluate(environment, expression)
 			}
 		} else {
 			fmt.Fprintf(os.Stdout, "Goodbye!\n")

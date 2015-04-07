@@ -24,18 +24,24 @@ func operator(environment Environment, term Term) Term {
 
 func add_numbers(environment Environment, term Term) Term {
 	var result = big.NewRat(0, 1)
-	for _, argument := range environment.Evaluate(term).(Tuple) {
-		num := environment.Evaluate(argument).(*Number)
-		result.Add(result, num.value)
+	for i, argument := range Evaluate(environment, term).(Tuple) {
+		num, ok := Evaluate(environment, argument).(*Number)
+		if ok {
+			result.Add(result, num.value)
+		} else {
+			error := fmt.Sprintf("argument %d ( %s ) to add_numbers not a number", i, argument)
+			return Error(error)
+		}
 	}
 	return &Number{result}
 }
 
 func add_numbersP(environment Environment) Term {
 	var result = big.NewRat(0, 1)
-	numbers := environment.Evaluate(environment.Get(Symbol("numbers")))
+	numbersExp, _ := environment.Get(Symbol("numbers"))
+	numbers := Evaluate(environment, numbersExp)
 	for _, number := range numbers.(Tuple) {
-		num := environment.Evaluate(number).(*Number)
+		num := Evaluate(environment, number).(*Number)
 		result.Add(result, num.value)
 	}
 	return &Number{result}
@@ -44,7 +50,7 @@ func add_numbersP(environment Environment) Term {
 func add_lists(environment Environment, arguments Term) Term {
 	var terms []Term
 	for _, argument := range arguments.(Tuple) {
-		for _, term := range environment.Evaluate(argument).(Tuple) {
+		for _, term := range Evaluate(environment, argument).(Tuple) {
 			terms = append(terms, term)
 		}
 	}
@@ -54,10 +60,10 @@ func add_lists(environment Environment, arguments Term) Term {
 func subtract_proc(environment Environment, term Term) Term {
 	terms := term.(Tuple)
 	// TODO: implement uniary negation
-	num := environment.Evaluate(terms[0]).(*Number)
+	num := Evaluate(environment, terms[0]).(*Number)
 	result := big.NewRat(0, 1).Set(num.value)
 	for _, argument := range terms[1:] {
-		num = environment.Evaluate(argument).(*Number)
+		num = Evaluate(environment, argument).(*Number)
 		result.Sub(result, num.value)
 	}
 	return &Number{result}
@@ -76,16 +82,16 @@ func multiply_proc(environment Environment, term Term) Term {
 
 func quotient_proc(environment Environment, term Term) Term {
 	terms := term.(Tuple)
-	a := environment.Evaluate(terms[0]).(*Number)
-	b := environment.Evaluate(terms[1]).(*Number)
+	a := Evaluate(environment, terms[0]).(*Number)
+	b := Evaluate(environment, terms[1]).(*Number)
 	result := big.NewRat(0, 1).Quo(a.value, b.value)
 	return &Number{result}
 }
 
 // func remainder_proc(environment Environment, term Term) Term {
 // 	terms := term.(Tuple)
-// 	a := environment.Evaluate(terms[0]).(*Number)
-// 	b := environment.Evaluate(terms[1]).(*Number)
+// 	a := Evaluate(environment, terms[0]).(*Number)
+// 	b := Evaluate(environment, terms[1]).(*Number)
 // 	result := big.NewRat(0, 1).Rem(a.value, b.value)
 // 	return &Number{result}
 // }
@@ -94,7 +100,7 @@ func is_number_equal_proc(environment Environment, term Term) Term {
 	terms := term.(Tuple)
 	value := terms[0].(*Number).value
 	for _, argument := range terms[1:] {
-		num := environment.Evaluate(argument).(*Number)
+		num := Evaluate(environment, argument).(*Number)
 		if value.Cmp(num.value) != 0 {
 			return Boolean(false)
 		}
@@ -104,10 +110,10 @@ func is_number_equal_proc(environment Environment, term Term) Term {
 
 func is_less_than_proc(environment Environment, term Term) Term {
 	terms := term.(Tuple)
-	num := environment.Evaluate(terms[0])
+	num := Evaluate(environment, terms[0])
 	previous := num.(*Number).value
 	for _, argument := range terms[1:] {
-		num = environment.Evaluate(argument)
+		num = Evaluate(environment, argument)
 		next := num.(*Number).value
 		if previous.Cmp(next) == -1 {
 			previous = next
@@ -120,10 +126,10 @@ func is_less_than_proc(environment Environment, term Term) Term {
 
 func is_greater_than_proc(environment Environment, term Term) Term {
 	terms := term.(Tuple)
-	num := environment.Evaluate(terms[0])
+	num := Evaluate(environment, terms[0])
 	previous := num.(*Number).value
 	for _, argument := range terms[1:] {
-		num = environment.Evaluate(argument)
+		num = Evaluate(environment, argument)
 		next := num.(*Number).value
 		if previous.Cmp(next) == 1 {
 			previous = next
@@ -161,7 +167,7 @@ func define(environment Environment, term Term) Term {
 func set(environment Environment, term Term) Term {
 	terms := term.(Tuple)
 	variable := terms[0]
-	value := environment.Evaluate(terms[1])
+	value := Evaluate(environment, terms[1])
 	environment.Set(variable.(Symbol), value)
 	return nil
 }
@@ -169,13 +175,18 @@ func set(environment Environment, term Term) Term {
 func get(environment Environment, term Term) Term {
 	terms := term.(Tuple)
 	variable := terms[0]
-	return environment.Get(variable.(Symbol))
+	value, ok := environment.Get(variable.(Symbol))
+	if ok {
+		return value
+	} else {
+		return UnboundVariableError{variable, "get"}
+	}
 }
 
 func begin(environment Environment, term Term) Term {
 	var result Term
 	for _, expression := range term.(Tuple) {
-		result = environment.Evaluate(expression)
+		result = Evaluate(environment, expression)
 	}
 	return result
 }
@@ -183,7 +194,7 @@ func begin(environment Environment, term Term) Term {
 func and(environment Environment, term Term) Term {
 	terms := term.(Tuple)
 	for _, exp := range terms {
-		result := environment.Evaluate(exp).(Boolean)
+		result := Evaluate(environment, exp).(Boolean)
 		if !result {
 			return result
 		}
@@ -194,7 +205,7 @@ func and(environment Environment, term Term) Term {
 func or(environment Environment, term Term) Term {
 	terms := term.(Tuple)
 	for _, exp := range terms {
-		result := environment.Evaluate(exp).(Boolean)
+		result := Evaluate(environment, exp).(Boolean)
 		if result {
 			return result
 		}
@@ -205,7 +216,7 @@ func or(environment Environment, term Term) Term {
 func ifPrimitive(environment Environment, term Term) Term {
 	terms := term.(Tuple)
 	if_predicate := terms[0]
-	if environment.Evaluate(if_predicate).(Boolean) {
+	if Evaluate(environment, if_predicate).(Boolean) {
 		if_consequent := terms[1]
 		term = if_consequent
 	} else {
@@ -217,7 +228,7 @@ func ifPrimitive(environment Environment, term Term) Term {
 		}
 		term = if_alternative
 	}
-	return environment.Evaluate(term)
+	return Evaluate(environment, term)
 }
 
 func apply(environment Environment, term Term) Term {
@@ -225,7 +236,7 @@ func apply(environment Environment, term Term) Term {
 }
 
 func evalPrimitive(environment Environment, term Term) Term {
-	return environment.Evaluate(term.(Tuple)[0])
+	return Evaluate(environment, term.(Tuple)[0])
 }
 
 func let(environment Environment, term Term) Term {
@@ -236,8 +247,8 @@ func let(environment Environment, term Term) Term {
 	var parameters, arguments Tuple
 	for _, binding := range bindings.(Tuple) {
 		b := binding.(Tuple)
-		parameters = append(parameters, environment.Evaluate(b[0]))
-		arguments = append(arguments, environment.Evaluate(b[1]))
+		parameters = append(parameters, b[0])
+		arguments = append(arguments, b[1])
 	}
 
 	parameters = Tuple([]Term{parameters}) // TODO: ??

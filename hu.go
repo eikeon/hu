@@ -49,7 +49,8 @@ func (s Symbol) String() string {
 }
 
 func (s Symbol) Reduce(environment Environment) Term {
-	return environment.Get(s)
+	v, _ := environment.Get(s)
+	return v
 }
 
 type String string
@@ -113,7 +114,7 @@ func (application Application) String() string {
 
 func (application Application) Reduce(environment Environment) Term {
 	for i, term := range application {
-		switch operator := environment.Evaluate(term).(type) {
+		switch operator := Evaluate(environment, term).(type) {
 		case Operator:
 			var operands Term
 			switch operator.(type) {
@@ -135,10 +136,10 @@ type Abstraction struct {
 	Term       Term
 }
 
-func (a Abstraction) apply(environment Environment, values Term) Term {
-	e := environment.NewChildEnvironment()
-	e.Extend(a.Parameters, values)
-	return Closure{a.Term, e}
+func (a Abstraction) apply(e Environment, values Term) Term {
+	c := &NestedEnvironment{Environment: make(LocalEnvironment), Parent: e}
+	Extend(c, a.Parameters, values)
+	return Closure{a.Term, c}
 }
 
 func (abstraction Abstraction) String() string {
@@ -155,7 +156,7 @@ func (closure Closure) String() string {
 }
 
 func (closure Closure) Reduce(environment Environment) Term {
-	return closure.Environment.Evaluate(closure.Term)
+	return Evaluate(closure.Environment, closure.Term)
 }
 
 type Error string
@@ -173,40 +174,7 @@ func (e UnboundVariableError) String() string {
 	return "Unbound Variable: " + e.variable.String() + " operation: " + e.operation
 }
 
-type environment struct {
-	frame  Frame
-	parent Environment
-}
-
-func (environment *environment) String() string {
-	return "#<environment>"
-}
-
-func NewEnvironment() *environment {
-	return &environment{frame: make(LocalFrame)}
-}
-
-func NewEnvironmentWithFrame(f Frame) *environment {
-	return &environment{frame: f}
-}
-
-func NewEnvironmentWithParent(p Environment) *environment {
-	return &environment{frame: make(LocalFrame), parent: p}
-}
-
-func NewEnvironmentWithFrameWithParent(f Frame, p Environment) *environment {
-	return &environment{frame: f, parent: p}
-}
-
-// returns a new (child) environment from this environment extended
-// with bindings given by variables, values.
-func (e *environment) NewChildEnvironment() Environment {
-	child := &environment{frame: make(LocalFrame)}
-	child.parent = e
-	return child
-}
-
-func (environment *environment) Extend(variables, values Term) {
+func Extend(environment Environment, variables, values Term) {
 	switch vars := variables.(type) {
 	case Tuple:
 		vals := values.(Tuple)
@@ -215,91 +183,81 @@ func (environment *environment) Extend(variables, values Term) {
 		}
 		for i, v := range vars {
 			val := vals[i]
-			environment.Extend(v, val)
+			Extend(environment, v, val)
 		}
 	case Symbol:
 		if vars != Term(nil) {
-			environment.Define(vars, Closure{values, environment.parent})
+			parent := environment.(*NestedEnvironment).Parent
+			environment.Define(vars, Closure{values, parent})
 		}
 	}
 }
 
-type Frame interface {
+type Environment interface {
 	Define(variable Symbol, value Term)
 	Set(variable Symbol, value Term) bool
 	Get(variable Symbol) (Term, bool)
 }
 
-type Environment interface {
-	Define(variable Symbol, value Term)
-	Set(variable Symbol, value Term)
-	Get(variable Symbol) Term
-	Evaluate(term Term) (result Term)
-	NewChildEnvironment() Environment
-	Extend(variables, values Term)
+type LocalEnvironment map[Symbol]Term
+
+func (environment LocalEnvironment) Define(variable Symbol, value Term) {
+	environment[variable] = value
 }
 
-type LocalFrame map[Symbol]Term
-
-func (frame LocalFrame) Define(variable Symbol, value Term) {
-	frame[variable] = value
+func (environment LocalEnvironment) Set(variable Symbol, value Term) bool {
+	environment[variable] = value
+	return true
 }
 
-func (frame LocalFrame) Set(variable Symbol, value Term) bool {
-	_, ok := frame[variable]
-	return ok
-}
-
-func (frame LocalFrame) Get(variable Symbol) (Term, bool) {
-	value, ok := frame[variable]
-	return value, ok
-}
-
-func (environment *environment) Define(variable Symbol, value Term) {
-	environment.frame.Define(variable, value)
-}
-
-func (environment *environment) Set(variable Symbol, value Term) {
-	_, ok := environment.frame.Get(variable)
+func (environment LocalEnvironment) Get(variable Symbol) (Term, bool) {
+	value, ok := environment[variable]
 	if ok {
-		environment.Define(variable, value)
-	} else if environment.parent != nil {
-		environment.parent.Set(variable, value)
+		return value, ok
 	} else {
-		panic(UnboundVariableError{variable, "set"})
+		return UnboundVariableError{variable, "get"}, false
+	}
+
+}
+
+type NestedEnvironment struct {
+	Environment Environment
+	Parent      Environment
+}
+
+func (environment *NestedEnvironment) String() string {
+	return "#<environment>"
+}
+
+func (ne *NestedEnvironment) Define(variable Symbol, value Term) {
+	ne.Environment.Define(variable, value)
+}
+
+func (ne *NestedEnvironment) Set(variable Symbol, value Term) bool {
+	fmt.Println("NE Set:", variable, value)
+	_, ok := ne.Get(variable)
+	if ok {
+		ne.Define(variable, value)
+		return true
+	} else if ne.Parent != nil {
+		return ne.Parent.Set(variable, value)
+	} else {
+		return false
 	}
 }
 
-func (environment *environment) Get(variable Symbol) Term {
-	value, ok := environment.frame.Get(variable)
+func (ne *NestedEnvironment) Get(variable Symbol) (Term, bool) {
+	value, ok := ne.Environment.Get(variable)
 	if ok {
-		return value
-	} else if environment.parent != nil {
-		return environment.parent.Get(variable)
+		return value, true
+	} else if ne.Parent != nil {
+		return ne.Parent.Get(variable)
 	} else {
-		panic(UnboundVariableError{variable, "get"})
+		return UnboundVariableError{variable, "get"}, false
 	}
-	return nil
 }
 
-func (environment *environment) AddPrimitive(name string, function PrimitiveFunction) {
-	environment.Define(Symbol(name), function)
-}
-
-func (environment *environment) _Evaluate(term Term) (result Term) {
-	defer func() {
-		switch x := recover().(type) {
-		case Term:
-			result = x
-		case interface{}:
-			result = Error(fmt.Sprintf("%v", x))
-		}
-	}()
-	result = environment.Evaluate(term)
-	return
-}
-
-func (environment *environment) Evaluate(term Term) Term {
+func Evaluate(environment Environment, term Term) Term {
 tailcall:
 	switch t := term.(type) {
 	case Reducible:
@@ -318,6 +276,6 @@ func GuardedEvaluate(environment Environment, expression Term) (result Term) {
 			result = Error(fmt.Sprintf("%v", x))
 		}
 	}()
-	result = environment.Evaluate(expression)
+	result = Evaluate(environment, expression)
 	return
 }
