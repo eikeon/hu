@@ -164,11 +164,34 @@ func define(environment Environment, term Term) Term {
 	return nil
 }
 
+func variable(environment Environment, term Term) Term {
+	// schedule () {lambda (newSchedule) {runSchedule newSchedule}}
+	terms := term.(Tuple)
+
+	name, ok := terms[0].(Symbol)
+	if !ok {
+		return Error("unexpected type for name")
+	}
+	didSet, ok := Evaluate(environment, terms[1]).(Abstraction)
+	if !ok {
+		return Error("unexpected type for didSet")
+	}
+	environment.Define(name, &Property{name, didSet})
+	environment.Define(Symbol(name+"^didSet"), didSet)
+	return nil
+}
+
 func set(environment Environment, term Term) Term {
 	terms := term.(Tuple)
 	variable := terms[0]
 	value := Evaluate(environment, terms[1])
-	environment.Set(variable.(Symbol), value)
+	name := variable.(Symbol)
+	environment.Set(name, value)
+	didSet, ok := environment.Get(Symbol(name + "^didSet"))
+	log.Println("didSet", didSet, ok)
+	if ok {
+		Evaluate(environment, Application([]Term{didSet, value}))
+	}
 	return nil
 }
 

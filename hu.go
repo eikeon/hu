@@ -234,7 +234,6 @@ func (ne *NestedEnvironment) Define(variable Symbol, value Term) {
 }
 
 func (ne *NestedEnvironment) Set(variable Symbol, value Term) bool {
-	fmt.Println("NE Set:", variable, value)
 	_, ok := ne.Get(variable)
 	if ok {
 		ne.Define(variable, value)
@@ -255,6 +254,15 @@ func (ne *NestedEnvironment) Get(variable Symbol) (Term, bool) {
 	} else {
 		return UnboundVariableError{variable, "get"}, false
 	}
+}
+
+type Property struct {
+	Name   Symbol
+	DidSet Abstraction
+}
+
+func (property Property) String() string {
+	return fmt.Sprintf("#<property> %v", property.Name)
 }
 
 func Evaluate(environment Environment, term Term) Term {

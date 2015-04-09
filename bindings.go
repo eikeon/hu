@@ -28,6 +28,7 @@ func AddDefaultBindings(environment Environment) {
 	//AddPrimitive(environment, "remainder", remainder_proc)
 
 	AddPrimitive(environment, "define", define)
+	AddPrimitive(environment, "variable", variable)
 	AddPrimitive(environment, "set", set)
 	AddPrimitive(environment, "get", get)
 	AddPrimitive(environment, "begin", begin)
