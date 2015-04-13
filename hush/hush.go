@@ -41,7 +41,7 @@ func main() {
 				fmt.Printf("hu> ")
 				continue
 			} else {
-				result = hu.Evaluate(environment, expression)
+				result = hu.GuardedEvaluate(environment, expression)
 			}
 		} else {
 			fmt.Fprintf(os.Stdout, "Goodbye!\n")
