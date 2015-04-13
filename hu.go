@@ -234,7 +234,7 @@ func (ne *NestedEnvironment) Define(variable Symbol, value Term) {
 }
 
 func (ne *NestedEnvironment) Set(variable Symbol, value Term) bool {
-	_, ok := ne.Get(variable)
+	_, ok := ne.Environment.Get(variable)
 	if ok {
 		ne.Define(variable, value)
 		return true
